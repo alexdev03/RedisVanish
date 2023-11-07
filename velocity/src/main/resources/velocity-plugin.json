@@ -1,0 +1,16 @@
+{
+  "id": "redisvanish",
+  "name": "RedisVanish",
+  "version": "${version}",
+  "description": "${description}",
+  "authors": [
+    "AlexDev_"
+  ],
+  "dependencies": [
+    {
+      "id": "velocitab",
+      "optional": true
+    }
+  ],
+  "main": "org.alexdev.redisvanish.RedisVanish"
+}
