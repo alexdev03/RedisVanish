@@ -12,6 +12,7 @@ import org.alexdev.redisvanish.hook.Hook;
 import org.alexdev.redisvanish.hook.ProtocolLibHook;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.alexdev.redisvanish.listener.PlayerListener;
+import org.alexdev.redisvanish.listener.VanishListener;
 import org.alexdev.redisvanish.redis.RedisHandler;
 import org.alexdev.redisvanish.vanish.VanishManager;
 import org.bukkit.Bukkit;
@@ -41,7 +42,7 @@ public final class RedisVanish extends JavaPlugin {
         inventoryManager = new InventoryManager(this);
         loadHooks();
         loadCommands();
-        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        loadListeners();
 
         getLogger().info("RedisVanish has been enabled!");
     }
@@ -72,6 +73,11 @@ public final class RedisVanish extends JavaPlugin {
         CommandService drink = Drink.get(this);
         drink.register(new VanishSettingsCommand(this), "vanishsettings", "vs");
         drink.registerCommands();
+    }
+
+    private void loadListeners() {
+        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        getServer().getPluginManager().registerEvents(new VanishListener(this), this);
     }
 
     @Override

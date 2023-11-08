@@ -1,6 +1,7 @@
 package org.alexdev.redisvanish.vanish;
 
-import lombok.RequiredArgsConstructor;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.data.User;
 import org.alexdev.redisvanish.data.VanishLevel;
@@ -16,10 +17,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
-@RequiredArgsConstructor
+
 public class VanishManager {
 
     private final RedisVanish plugin;
+
+    public VanishManager(RedisVanish plugin) {
+        this.plugin = plugin;
+        this.vanishActionbar();
+    }
 
     public boolean isVanished(@NotNull User user) {
         return user.isVanished(plugin.getConfigManager().getConfig().getServerType());
@@ -157,5 +163,17 @@ public class VanishManager {
         } else {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         }
+    }
+
+    private void vanishActionbar() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                if (isVanished(player) && hasProperty(player, VanishProperty.ACTION_BAR)) {
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                            new TextComponent("§7§oYou are currently vanished"));
+
+                }
+            }
+        }, 0, 20);
     }
 }
