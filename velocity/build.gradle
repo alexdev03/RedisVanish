@@ -1,0 +1,20 @@
+dependencies {
+    implementation project(':common')
+
+    compileOnly 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'net.william278:velocitab:1.5.2-c36e17b'
+
+    implementation 'org.bstats:bstats-velocity:3.0.2'
+    implementation 'io.lettuce:lettuce-core:6.2.5.RELEASE'
+    implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
+    implementation 'com.github.Exlll.ConfigLib:configlib-velocity:dev-SNAPSHOT'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+shadowJar {
+    relocate 'org.bstats', 'org.alexdev.redisvanish.libraries.bstats'
+    relocate 'io.lettuce', 'org.alexdev.redisvanish.libraries.lettuce'
+    relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
+}

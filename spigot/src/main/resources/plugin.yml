@@ -1,0 +1,10 @@
+name: RedisVanish
+version: '${version}'
+main: org.alexdev.redisvanish.RedisVanish
+api-version: '1.16'
+load: STARTUP
+authors: [ AlexDev_ ]
+softdepend:
+  - UnlimitedNameTags
+libraries:
+  - io.lettuce:lettuce-core:6.2.5.RELEASE

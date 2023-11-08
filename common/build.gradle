@@ -1,0 +1,10 @@
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'io.lettuce:lettuce-core:6.2.5.RELEASE'
+    compileOnly 'com.google.code.gson:gson:2.10.1'
+    compileOnly 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
+
+    implementation 'org.jetbrains:annotations:24.0.1'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}

@@ -1,0 +1,5 @@
+rootProject.name = 'RedisVanish'
+include 'common'
+include 'velocity'
+include 'spigot'
+
