@@ -1,6 +1,6 @@
 package org.alexdev.redisvanish.redis;
 
-import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import io.lettuce.core.RedisClient;
 import lombok.Getter;
 import org.alexdev.redisvanish.RedisVanish;
@@ -10,6 +10,7 @@ import org.alexdev.redisvanish.redis.data.RedisKeys;
 import org.alexdev.redisvanish.redis.data.RedisPubSub;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
@@ -74,13 +75,16 @@ public class RedisHandler extends RedisImplementation {
     }
 
     private Map<Integer, VanishLevel> deserialize(@NotNull String json) {
-        JsonObject object = gson.fromJson(json, JsonObject.class);
-        Map<Integer, VanishLevel> newLevels = new ConcurrentSkipListMap<>();
-        object.entrySet().forEach(entry -> {
-            newLevels.put(Integer.parseInt(entry.getKey()), gson.fromJson(entry.getValue(), VanishLevel.class));
-        });
+        Type empMapType = new TypeToken<Map<Integer, VanishLevel>>() {}.getType();
+        Map<Integer, VanishLevel> newLevels = gson.fromJson(json, empMapType);
+        System.out.println(newLevels);
+//        Map<Integer, VanishLevel> newLevels = new ConcurrentSkipListMap<>();
+//        object.entrySet().forEach(entry -> {
+//            newLevels.put(Integer.parseInt(entry.getKey()), gson.fromJson(entry.getValue(), VanishLevel.class));
+//        });
         return newLevels;
     }
+
 
 
 }

@@ -48,4 +48,7 @@ public class UserManager {
     }
 
 
+    public void replaceUser(User user) {
+        users.put(user.uuid(), user);
+    }
 }

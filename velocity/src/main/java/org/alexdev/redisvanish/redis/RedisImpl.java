@@ -7,7 +7,7 @@ import io.lettuce.core.RedisClient;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.data.User;
 import org.alexdev.redisvanish.redis.data.RedisKeys;
-import org.jetbrains.annotations.NotNull;
+import org.alexdev.redisvanish.redis.data.RedisPubSub;
 
 
 public class RedisImpl extends RedisImplementation {
@@ -20,14 +20,7 @@ public class RedisImpl extends RedisImplementation {
         this.plugin = plugin;
         this.gson = new Gson();
         this.publishVanishLevels();
-    }
-
-    public void saveUser(@NotNull User user) {
-        this.getConnectionAsync(connection -> connection.hset(RedisKeys.USER.getKey(), user.uuid().toString(), gson.toJson(user)));
-    }
-
-    public void sendUserUpdate(@NotNull User user) {
-        this.getConnectionAsync(connection -> connection.publish(RedisKeys.USER_UPDATE.getKey(), gson.toJson(user)));
+        this.subscribe();
     }
 
     public void publishVanishLevels() {
@@ -35,6 +28,19 @@ public class RedisImpl extends RedisImplementation {
             JsonObject object = gson.toJsonTree(plugin.getConfigManager().getConfig().getVanishLevels()).getAsJsonObject();
             connection.set(RedisKeys.VANISH_LEVELS.getKey(), object.toString());
             return connection.publish(RedisKeys.VANISH_LEVELS_UPDATE.getKey(), object.toString());
+        });
+    }
+
+    private void subscribe() {
+        getPubSubConnection(c -> {
+            c.addListener(new RedisPubSub<>() {
+                @Override
+                public void message(String channel, String message) {
+                    User user = gson.fromJson(message, User.class);
+                    plugin.getUserManager().replaceUser(user);
+                }
+            });
+            c.async().subscribe(RedisKeys.USER_UPDATE.getKey());
         });
     }
 

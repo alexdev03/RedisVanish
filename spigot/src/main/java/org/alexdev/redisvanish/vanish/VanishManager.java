@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.data.User;
 import org.alexdev.redisvanish.data.VanishLevel;
+import org.alexdev.redisvanish.data.VanishProperty;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -17,18 +21,39 @@ public class VanishManager {
 
     private final RedisVanish plugin;
 
-    public boolean isVanished(User user) {
+    public boolean isVanished(@NotNull User user) {
         return user.isVanished(plugin.getConfigManager().getConfig().getServerType());
     }
 
-    public boolean isVanished(Player player) {
+    public boolean hasProperty(@NotNull User user, @NotNull VanishProperty property) {
+        return user.hasProperty(property, plugin.getConfigManager().getConfig().getServerType());
+    }
+
+    public void setProperty(@NotNull User user, @NotNull VanishProperty property, boolean value) {
+        user.setProperty(property, plugin.getConfigManager().getConfig().getServerType(), value);
+    }
+
+    public boolean isVanished(@NotNull Player player) {
         return isVanished(plugin.getUserManager().getUser(player));
     }
 
-    public void hidePlayer(Player player) {
+    public boolean hasProperty(@NotNull Player player, @NotNull VanishProperty property) {
+        return hasProperty(plugin.getUserManager().getUser(player), property);
+    }
+
+    public void setProperty(@NotNull Player player, @NotNull VanishProperty property, boolean value) {
+        setProperty(plugin.getUserManager().getUser(player), property, value);
+    }
+
+
+    public void hidePlayer(@NotNull Player player) {
         if (!isVanished(player)) {
             return;
         }
+
+        player.setMetadata("vanished", new FixedMetadataValue(plugin, true));
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> applyEffects(plugin.getUserManager().getUser(player)), 5L);
 
         plugin.getHook(UnlimitedNameTagsHook.class).ifPresent(hook -> hook.hidePlayer(player));
 
@@ -43,7 +68,11 @@ public class VanishManager {
         }));
     }
 
-    public void showPlayer(Player player) {
+    public void showPlayer(@NotNull Player player) {
+        player.removeMetadata("vanished", plugin);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> applyEffects(plugin.getUserManager().getUser(player)), 5L);
+
         plugin.getHook(UnlimitedNameTagsHook.class).ifPresent(hook -> hook.showPlayer(player));
 
         Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getOnlinePlayers().forEach(onlinePlayer -> {
@@ -64,7 +93,7 @@ public class VanishManager {
         }
 
         if (!isVanished(target)) {
-//            System.out.println("Target " + target.getUsername() + " is not vanished, can see");
+//            System.out.println("Target " + target.getName() + " is not vanished, can see");
             return true;
         }
 
@@ -78,7 +107,7 @@ public class VanishManager {
         Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
 
         if (playerVanishLevel.isEmpty()) {
-//            System.out.println("Player " + player.getUsername() + " has no vanish level, can't see");
+//            System.out.println("Player " + player.getName() + " has no vanish level, can't see");
             return false;
         }
 
@@ -106,5 +135,27 @@ public class VanishManager {
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(0);
+    }
+
+    public void toggleProperty(User user, VanishProperty vanishProperty) {
+        setProperty(user, vanishProperty, !hasProperty(user, vanishProperty));
+    }
+
+    public void applyEffects(User user) {
+        Player player = Bukkit.getPlayer(user.uuid());
+
+        if (player == null) {
+            return;
+        }
+
+        if(!hasProperty(user, VanishProperty.NIGHT_VISION)) {
+            return;
+        }
+
+        if (isVanished(user)) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0, false, false));
+        } else {
+            player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        }
     }
 }

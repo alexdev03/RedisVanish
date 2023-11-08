@@ -65,7 +65,6 @@ public class VanishManager {
         final User targetUser = plugin.getUserManager().getUser(player);
 
         final String currentServer = getServer(player);
-        System.out.println(player.getUsername() + " is on " + currentServer);
 
         return targetUser.isVanished(currentServer);
     }
