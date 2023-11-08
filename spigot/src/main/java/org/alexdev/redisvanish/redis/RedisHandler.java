@@ -35,8 +35,12 @@ public class RedisHandler extends RedisImplementation {
             c.addListener(new RedisPubSub<>() {
                 @Override
                 public void message(String channel, String message) {
-                    User user = gson.fromJson(message, User.class);
-                    plugin.getUserManager().replaceUser(user);
+                    try {
+                        User user = gson.fromJson(message, User.class);
+                        plugin.getUserManager().replaceUser(user);
+                    } catch (Exception ex) {
+                        plugin.getLogger().log(Level.SEVERE, "Error parsing user update", ex);
+                    }
                 }
             });
             c.async().subscribe(RedisKeys.USER_UPDATE.getKey());
@@ -46,7 +50,7 @@ public class RedisHandler extends RedisImplementation {
             c.addListener(new RedisPubSub<>() {
                 @Override
                 public void message(String channel, String message) {
-                    Map<Integer, VanishLevel> newLevels = (Map<Integer, VanishLevel>) gson.fromJson(message, Map.class);
+                    Map<Integer, VanishLevel> newLevels = deserialize(message);
                     vanishLevels.clear();
                     vanishLevels.putAll(newLevels);
                 }
@@ -62,9 +66,6 @@ public class RedisHandler extends RedisImplementation {
             }
 
             Map<Integer, VanishLevel> newLevels = deserialize(result);
-            newLevels.forEach((key, value) -> {
-                System.out.println("Loaded vanish level " + key + " with name " + value.name());
-            });
             vanishLevels.clear();
             vanishLevels.putAll(newLevels);
             plugin.getLogger().info("Loaded " + vanishLevels.size() + " vanish levels");
@@ -76,13 +77,7 @@ public class RedisHandler extends RedisImplementation {
 
     private Map<Integer, VanishLevel> deserialize(@NotNull String json) {
         Type empMapType = new TypeToken<Map<Integer, VanishLevel>>() {}.getType();
-        Map<Integer, VanishLevel> newLevels = gson.fromJson(json, empMapType);
-        System.out.println(newLevels);
-//        Map<Integer, VanishLevel> newLevels = new ConcurrentSkipListMap<>();
-//        object.entrySet().forEach(entry -> {
-//            newLevels.put(Integer.parseInt(entry.getKey()), gson.fromJson(entry.getValue(), VanishLevel.class));
-//        });
-        return newLevels;
+        return gson.fromJson(json, empMapType);
     }
 
 

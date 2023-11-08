@@ -1,22 +1,24 @@
 package org.alexdev.redisvanish.data;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public record User(UUID uuid, String name, Map<String, VanishContainer> vanishLevels) {
+public record User(@NotNull UUID uuid, @NotNull String name, @NotNull Map<String, VanishContainer> vanishLevels) {
 
-    public User(UUID uuid, String name) {
+    public User(@NotNull UUID uuid, @NotNull String name) {
         this(uuid, name, new ConcurrentHashMap<>());
     }
 
-    public boolean isVanished(String server) {
-        VanishContainer container = vanishLevels.get(server);
+    public boolean isVanished(@NotNull String server) {
+        final VanishContainer container = vanishLevels.get(server);
         return container != null && container.isVanished();
     }
 
-    public void setVanished(String server, boolean vanished) {
+    public void setVanished(@NotNull String server, boolean vanished) {
         VanishContainer container = vanishLevels.get(server);
 
         if (container == null) {
@@ -27,12 +29,12 @@ public record User(UUID uuid, String name, Map<String, VanishContainer> vanishLe
         container.setVanished(vanished);
     }
 
-    public boolean hasProperty(VanishProperty vanishProperty, String server) {
-        VanishContainer container = vanishLevels.get(server);
+    public boolean hasProperty(@NotNull VanishProperty vanishProperty, @NotNull String server) {
+        final VanishContainer container = vanishLevels.get(server);
         return container != null && container.properties().getOrDefault(vanishProperty, false);
     }
 
-    public void setProperty(VanishProperty vanishProperty, String server, boolean value) {
+    public void setProperty(@NotNull VanishProperty vanishProperty, String server, boolean value) {
         VanishContainer container = vanishLevels.get(server);
 
         if (container == null) {

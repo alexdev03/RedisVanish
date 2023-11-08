@@ -1,11 +1,8 @@
 package org.alexdev.redisvanish.hook;
 
-import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.Player;
 import lombok.Getter;
-import net.william278.velocitab.Velocitab;
 import net.william278.velocitab.api.VelocitabAPI;
-import net.william278.velocitab.player.TabPlayer;
 import net.william278.velocitab.vanish.VanishIntegration;
 import org.alexdev.redisvanish.RedisVanish;
 import org.jetbrains.annotations.NotNull;
@@ -63,17 +60,18 @@ public class VelocitabHook extends Hook {
 
     @NotNull
     public String getCurrentGroup(@NotNull Player player) {
-        Optional<TabPlayer> tabPlayer = velocitabAPI.getTabList().getTabPlayer(player);
-        if (tabPlayer.isEmpty()) {
-            return "";
-        }
-
-        Optional<?> velocitabOptional = plugin.getServer().getPluginManager().getPlugin("velocitab").flatMap(PluginContainer::getInstance);
-
-        if(velocitabOptional.isEmpty() || !(velocitabOptional.get() instanceof Velocitab velocitab)) {
-            return "";
-        }
-
-        return tabPlayer.get().getServerGroup(velocitab);
+//        Optional<TabPlayer> tabPlayer = velocitabAPI.getTabList().getTabPlayer(player);
+//        if (tabPlayer.isEmpty()) {
+//            return "";
+//        }
+//
+//        Optional<?> velocitabOptional = plugin.getServer().getPluginManager().getPlugin("velocitab").flatMap(PluginContainer::getInstance);
+//
+//        if(velocitabOptional.isEmpty() || !(velocitabOptional.get() instanceof Velocitab velocitab)) {
+//            return "";
+//        }
+//
+//        return tabPlayer.get().getServerGroup(velocitab);
+        return velocitabAPI.getServerGroup(player);
     }
 }

@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
+@SuppressWarnings("unused")
 public class VanishManager {
 
     private final RedisVanish plugin;
@@ -53,6 +54,11 @@ public class VanishManager {
 
 
     public void hidePlayer(@NotNull Player player) {
+        if(!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, () -> hidePlayer(player));
+            return;
+        }
+
         if (!isVanished(player)) {
             return;
         }
@@ -63,7 +69,7 @@ public class VanishManager {
 
         plugin.getHook(UnlimitedNameTagsHook.class).ifPresent(hook -> hook.hidePlayer(player));
 
-        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getOnlinePlayers().forEach(onlinePlayer -> {
+        Bukkit.getOnlinePlayers().forEach(onlinePlayer -> {
             if (onlinePlayer.equals(player)) {
                 return;
             }
@@ -71,7 +77,7 @@ public class VanishManager {
             if (!canSee(onlinePlayer, player)) {
                 onlinePlayer.hidePlayer(plugin, player);
             }
-        }));
+        });
     }
 
     public void showPlayer(@NotNull Player player) {
@@ -90,6 +96,18 @@ public class VanishManager {
                 onlinePlayer.showPlayer(plugin, player);
             }
         }));
+    }
+
+    public void updateVanished(Player player) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.equals(player)) {
+                continue;
+            }
+
+            if (isVanished(onlinePlayer) && !canSee(player, onlinePlayer)) {
+                player.hidePlayer(plugin, onlinePlayer);
+            }
+        }
     }
 
     public boolean canSee(@NotNull Player player, @NotNull Player target) {

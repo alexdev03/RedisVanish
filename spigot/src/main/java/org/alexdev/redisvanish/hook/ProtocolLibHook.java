@@ -81,6 +81,8 @@ public class ProtocolLibHook extends Hook implements Listener {
 
     @EventHandler
     private void onInventoryClose(InventoryCloseEvent e) {
+        if (!(e.getPlayer() instanceof Player player)) return;
+        if (!player.isOnline()) return;
         if (!isInVanish((Player) e.getPlayer())) return;
         if (!plugin.getVanishManager().hasProperty((Player) e.getPlayer(), VanishProperty.SILENT)) return;
 
