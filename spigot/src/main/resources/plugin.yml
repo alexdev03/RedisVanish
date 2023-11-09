@@ -7,5 +7,6 @@ authors: [ AlexDev_ ]
 softdepend:
   - UnlimitedNameTags
   - ProtocolLib
+  - RedisChat
 libraries:
   - io.lettuce:lettuce-core:6.2.5.RELEASE

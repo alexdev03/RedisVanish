@@ -17,4 +17,5 @@ shadowJar {
     relocate 'org.bstats', 'org.alexdev.redisvanish.libraries.bstats'
     relocate 'io.lettuce', 'org.alexdev.redisvanish.libraries.lettuce'
     relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
+    minimize()
 }

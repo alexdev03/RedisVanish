@@ -47,7 +47,7 @@ public class VanishListener implements Listener {
             return;
         }
         preventWrongCommands.put(e.getPlayer().getUniqueId(), message);
-        e.getPlayer().sendMessage("§cRiscrivi il comando per confermare");
+        e.getPlayer().sendMessage("§cWrite the command again to execute it.");
         e.setCancelled(true);
     }
 

@@ -8,6 +8,7 @@ import org.alexdev.redisvanish.RedisVanish;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class VelocitabHook extends Hook {
@@ -27,8 +28,6 @@ public class VelocitabHook extends Hook {
                 Optional<Player> target = plugin.getServer().getPlayer(s1);
 
                 if (player.isPresent() && target.isPresent()) {
-//                    System.out.println("Checking if " + player.get().getUsername() + " can see " + target.get().getUsername()
-//                            + ". Can see: " + plugin.getVanishManager().canSee(player.get(), target.get()));
                     return plugin.getVanishManager().canSee(player.get(), target.get());
                 }
 
@@ -55,23 +54,11 @@ public class VelocitabHook extends Hook {
     }
 
     public void unVanish(@NotNull Player player) {
-        this.velocitabAPI.unVanishPlayer(player);
+        plugin.getServer().getScheduler().buildTask(plugin, () -> this.velocitabAPI.unVanishPlayer(player)).delay(500, TimeUnit.MILLISECONDS).schedule();
     }
 
     @NotNull
     public String getCurrentGroup(@NotNull Player player) {
-//        Optional<TabPlayer> tabPlayer = velocitabAPI.getTabList().getTabPlayer(player);
-//        if (tabPlayer.isEmpty()) {
-//            return "";
-//        }
-//
-//        Optional<?> velocitabOptional = plugin.getServer().getPluginManager().getPlugin("velocitab").flatMap(PluginContainer::getInstance);
-//
-//        if(velocitabOptional.isEmpty() || !(velocitabOptional.get() instanceof Velocitab velocitab)) {
-//            return "";
-//        }
-//
-//        return tabPlayer.get().getServerGroup(velocitab);
         return velocitabAPI.getServerGroup(player);
     }
 }

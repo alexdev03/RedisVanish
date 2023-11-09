@@ -10,6 +10,7 @@ import org.alexdev.redisvanish.data.UserManager;
 import org.alexdev.redisvanish.gui.InventoryManager;
 import org.alexdev.redisvanish.hook.Hook;
 import org.alexdev.redisvanish.hook.ProtocolLibHook;
+import org.alexdev.redisvanish.hook.RedisChatHook;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.alexdev.redisvanish.listener.PlayerListener;
 import org.alexdev.redisvanish.listener.VanishListener;
@@ -55,8 +56,15 @@ public final class RedisVanish extends JavaPlugin {
             hook.register();
             hooks.add(hook);
         }
+
         if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
             ProtocolLibHook hook = new ProtocolLibHook(this);
+            hook.register();
+            hooks.add(hook);
+        }
+
+        if(Bukkit.getPluginManager().isPluginEnabled("RedisChat")) {
+            RedisChatHook hook = new RedisChatHook(this);
             hook.register();
             hooks.add(hook);
         }

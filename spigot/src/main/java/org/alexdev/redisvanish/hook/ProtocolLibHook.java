@@ -26,12 +26,10 @@ import java.util.Set;
 
 public class ProtocolLibHook extends Hook implements Listener {
 
-    private final RedisVanish plugin;
     private final Set<Location> locations;
 
     public ProtocolLibHook(RedisVanish plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.locations = new HashSet<>();
     }
 
