@@ -43,6 +43,4 @@ public class RedisImpl extends RedisImplementation {
             c.async().subscribe(RedisKeys.USER_UPDATE.getKey());
         });
     }
-
-
 }

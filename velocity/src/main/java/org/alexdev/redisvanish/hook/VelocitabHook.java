@@ -41,6 +41,8 @@ public class VelocitabHook extends Hook {
             }
         });
 
+        plugin.getServer().getEventManager().register(plugin, this);
+
         plugin.getLogger().info("Hooked into Velocitab");
     }
 
@@ -61,4 +63,5 @@ public class VelocitabHook extends Hook {
     public String getCurrentGroup(@NotNull Player player) {
         return velocitabAPI.getServerGroup(player);
     }
+
 }

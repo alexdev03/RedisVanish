@@ -29,8 +29,8 @@ public final class RedisVanish extends JavaPlugin {
 
     private ConfigManager configManager;
     private RedisHandler redis;
-    private UserManager userManager;
     private VanishManager vanishManager;
+    private UserManager userManager;
     private InventoryManager inventoryManager;
     private List<Hook> hooks;
 
@@ -38,8 +38,8 @@ public final class RedisVanish extends JavaPlugin {
     public void onEnable() {
         configManager = new ConfigManager(this);
         redis = new RedisHandler(RedisClient.create(configManager.getConfig().getRedisUri()), 10, this);
-        userManager = new UserManager(this);
         vanishManager = new VanishManager(this);
+        userManager = new UserManager(this);
         inventoryManager = new InventoryManager(this);
         loadHooks();
         loadCommands();

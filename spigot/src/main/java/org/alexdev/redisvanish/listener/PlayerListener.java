@@ -49,11 +49,14 @@ public class PlayerListener implements Listener {
         if (plugin.getVanishManager().isVanished(user)) {
             e.setJoinMessage(null);
         }
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().prepareRemoteUser(user), 1L);
     }
 
     @EventHandler
     private void onQuit(PlayerQuitEvent e) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().removeUser(e.getPlayer().getUniqueId()), 5L);
+        plugin.getRedis().removeRemoteUser(e.getPlayer().getUniqueId());
     }
 
 }

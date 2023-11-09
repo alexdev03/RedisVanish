@@ -3,6 +3,7 @@ package org.alexdev.redisvanish.vanish;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.alexdev.redisvanish.RedisVanish;
+import org.alexdev.redisvanish.data.RemoteUser;
 import org.alexdev.redisvanish.data.User;
 import org.alexdev.redisvanish.data.VanishLevel;
 import org.alexdev.redisvanish.data.VanishProperty;
@@ -14,6 +15,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,7 +57,7 @@ public class VanishManager {
 
 
     public void hidePlayer(@NotNull Player player) {
-        if(!Bukkit.isPrimaryThread()) {
+        if (!Bukkit.isPrimaryThread()) {
             Bukkit.getScheduler().runTask(plugin, () -> hidePlayer(player));
             return;
         }
@@ -110,6 +113,38 @@ public class VanishManager {
         }
     }
 
+    public boolean canSee(@NotNull Player player, @NotNull String target) {
+        Player targetPlayer = Bukkit.getPlayer(target);
+
+        if (targetPlayer != null) {
+            return canSee(player, targetPlayer);
+        }
+
+        Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(target);
+
+        if (remoteUser.isEmpty()) {
+            plugin.getLogger().warning("Remote user " + target + " has no data in Redis, this should not happen");
+            return true;
+        }
+
+        if (player.hasPermission("redisvanish.bypass")) {
+            return true;
+        }
+
+        if(!remoteUser.get().vanished()) {
+            return true;
+        }
+
+        Optional<VanishLevel> targetVanishLevel = getVanishLevel(remoteUser.get().vanishLevel());
+
+        if (targetVanishLevel.isEmpty()) {
+            plugin.getLogger().warning("Remote user " + target + " has no vanish level, this should not happen (level: " + remoteUser.get().vanishLevel() + ")");
+            return true;
+        }
+
+        return getVanishLevel(player).filter(level -> checkVanishLevels(level, targetVanishLevel.get())).isPresent();
+    }
+
     public boolean canSee(@NotNull Player player, @NotNull Player target) {
         if (player.hasPermission("redisvanish.bypass")) {
 //            System.out.println("Bypassing vanish check for " + player.getUsername() + " on " + target.getUsername());
@@ -130,15 +165,15 @@ public class VanishManager {
 
         Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
 
-        if (playerVanishLevel.isEmpty()) {
-//            System.out.println("Player " + player.getName() + " has no vanish level, can't see");
-            return false;
-        }
+        //            System.out.println("Player " + player.getName() + " has no vanish level, can't see");
+        return playerVanishLevel.filter(level -> checkVanishLevels(level, targetVanishLevel.get())).isPresent();
 
-        int targetOrder = getOrder(targetVanishLevel.get());
-        int playerOrder = getOrder(playerVanishLevel.get());
+    }
 
-//        System.out.println("Checking if " + player.getUsername() + " can see " + target.getUsername() + ". Can see: " + (playerOrder >= targetOrder));
+    private boolean checkVanishLevels(VanishLevel player, VanishLevel target) {
+        int targetOrder = getOrder(target);
+        int playerOrder = getOrder(player);
+
 
         return playerOrder >= targetOrder;
     }
@@ -151,6 +186,13 @@ public class VanishManager {
         }
 
         return Optional.empty();
+    }
+
+    public Optional<VanishLevel> getVanishLevel(int index) {
+        return plugin.getRedis().getVanishLevels().entrySet().stream()
+                .filter(entry -> entry.getKey() == index)
+                .map(Map.Entry::getValue)
+                .findFirst();
     }
 
     private int getOrder(@NotNull VanishLevel vanishLevel) {
@@ -172,7 +214,7 @@ public class VanishManager {
             return;
         }
 
-        if(!hasProperty(user, VanishProperty.NIGHT_VISION)) {
+        if (!hasProperty(user, VanishProperty.NIGHT_VISION)) {
             return;
         }
 
@@ -193,5 +235,30 @@ public class VanishManager {
                 }
             }
         }, 0, 20);
+    }
+
+    public List<String> cleanStringList(Player player, List<String> list) {
+        User user = plugin.getUserManager().getUser(player);
+
+        List<String> newList = new ArrayList<>(list);
+
+        Optional<VanishLevel> vanishLevel = getVanishLevel(player);
+
+        newList.removeIf(s -> {
+            Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(s);
+            if(remoteUser.isEmpty()) return false;
+
+            if (vanishLevel.isEmpty() && remoteUser.get().vanished()) return true;
+
+            if (vanishLevel.isPresent() && remoteUser.get().vanished()) {
+                Optional<VanishLevel> targetVanishLevel = getVanishLevel(remoteUser.get().vanishLevel());
+                return targetVanishLevel.filter(level -> !checkVanishLevels(vanishLevel.get(), level)).isPresent();
+
+            }
+
+            return false;
+        });
+
+        return newList;
     }
 }

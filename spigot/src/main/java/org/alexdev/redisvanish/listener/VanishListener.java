@@ -14,6 +14,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.server.TabCompleteEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,4 +124,21 @@ public class VanishListener implements Listener {
         }
     }
 
+    @EventHandler
+    private void onTabComplete(TabCompleteEvent e) {
+        if (!(e.getSender() instanceof Player player)) return;
+        if (player.hasPermission("redisvanish.bypass")) return;
+
+        String command = e.getBuffer();
+        if (command.isEmpty()) return;
+
+        command = command.substring(1).split(" ")[0];
+
+        String finalCommand = command;
+        if (plugin.getConfigManager().getConfig().getCommandsToClean().stream()
+                .anyMatch(c -> c.equalsIgnoreCase(finalCommand))) {
+            e.setCompletions(plugin.getVanishManager().cleanStringList(player, e.getCompletions()));
+        }
+
+    }
 }

@@ -1,5 +1,6 @@
 package org.alexdev.redisvanish.listener;
 
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
@@ -25,7 +26,7 @@ public class PlayerListener {
         });
     }
 
-    @Subscribe
+    @Subscribe(order = PostOrder.LAST)
     public void onPlayerQuit(DisconnectEvent e) {
         plugin.getUserManager().removeUser(plugin.getUserManager().getUser(e.getPlayer()));
     }

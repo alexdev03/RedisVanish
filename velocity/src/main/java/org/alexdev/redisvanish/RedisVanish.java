@@ -70,7 +70,7 @@ public class RedisVanish {
     private void registerCommands() {
         final BrigadierCommand command = new RedisVanishCommand(this).getCommand();
         server.getCommandManager().register(
-                server.getCommandManager().metaBuilder(command).plugin(this).build(),
+                server.getCommandManager().metaBuilder(command).aliases("vanish").plugin(this).build(),
                 command
         );
     }

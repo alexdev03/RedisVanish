@@ -27,10 +27,8 @@ public class RedisChatHook extends Hook {
 
         vanishIntegration = new VanishIntegration() {
             @Override
-            public boolean canSee(@NotNull CommandSender sender, @NotNull String player1) {
+            public boolean canSee(@NotNull CommandSender sender, @NotNull String target) {
                 if (!(sender instanceof Player player)) return true;
-                Player target = plugin.getServer().getPlayer(player1);
-                if (target == null) return true;
                 return plugin.getVanishManager().canSee(player, target);
             }
 
@@ -41,6 +39,8 @@ public class RedisChatHook extends Hook {
         };
 
         api.addVanishIntegration(vanishIntegration);
+
+        plugin.getLogger().info("Hooked into RedisChat");
     }
 
     @Override

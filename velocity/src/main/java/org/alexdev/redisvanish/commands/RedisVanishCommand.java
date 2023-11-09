@@ -28,65 +28,66 @@ public final class RedisVanishCommand {
         final LiteralArgumentBuilder<CommandSource> builder = LiteralArgumentBuilder
                 .<CommandSource>literal("redisvanish")
                 .executes(ctx -> {
-//                    sendAboutInfo(ctx.getSource());
+
+                    if (!(ctx.getSource() instanceof Player player)) {
+                        ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
+                        return Command.SINGLE_SUCCESS;
+                    }
+
+                    if (!player.hasPermission("redisvanish.vanish")) {
+                        player.sendMessage(Component.text("You do not have permission to use this command!"));
+                        return Command.SINGLE_SUCCESS;
+                    }
+
+                    if (plugin.getVanishManager().isVanished(player)) {
+                        plugin.getVanishManager().unVanish(player);
+                        player.sendMessage(Component.text("You have been unvanished!"));
+                    } else {
+                        plugin.getVanishManager().vanish(player);
+                        player.sendMessage(Component.text("You have been vanished!"));
+                    }
+
                     return Command.SINGLE_SUCCESS;
                 })
-                .then(LiteralArgumentBuilder.<CommandSource>literal("vanish")
+                .then(RequiredArgumentBuilder.<CommandSource, String>argument("name", StringArgumentType.word())
+                        .suggests((ctx, builder1) -> {
+                            String input = (ctx.getArguments().containsKey("name") ? StringArgumentType.getString(ctx, "name") : "").toLowerCase();
+                            plugin.getServer().getAllPlayers().stream()
+                                    .map(Player::getUsername)
+                                    .filter(u -> input.isEmpty() || u.toLowerCase().startsWith(input))
+                                    .forEach(u -> builder1.suggest(u, VelocityBrigadierMessage.tooltip(MiniMessage.miniMessage().deserialize("<rainbow>" + u))));
+                            return builder1.buildFuture();
+                        })
                         .executes(ctx -> {
-
                             if (!(ctx.getSource() instanceof Player player)) {
                                 ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
                                 return Command.SINGLE_SUCCESS;
                             }
 
-                            if (!player.hasPermission("redisvanish.vanish")) {
+                            if (!player.hasPermission("redisvanish.vanish.others")) {
                                 player.sendMessage(Component.text("You do not have permission to use this command!"));
                                 return Command.SINGLE_SUCCESS;
                             }
 
-                            if (plugin.getVanishManager().isVanished(player)) {
-                                plugin.getVanishManager().unVanish(player);
-                                player.sendMessage(Component.text("You have been unvanished!"));
+                            String name = StringArgumentType.getString(ctx, "name");
+                            Optional<Player> target = plugin.getServer().getPlayer(name);
+
+                            if (target.isEmpty()) {
+                                player.sendMessage(Component.text("Player not found!"));
+                                return Command.SINGLE_SUCCESS;
+                            }
+
+                            if (plugin.getVanishManager().isVanished(target.get())) {
+                                plugin.getVanishManager().unVanish(target.get());
+                                player.sendMessage(Component.text("You have unvanished " + target.get().getUsername()));
                             } else {
-                                plugin.getVanishManager().vanish(player);
-                                player.sendMessage(Component.text("You have been vanished!"));
+                                plugin.getVanishManager().vanish(target.get());
+                                player.sendMessage(Component.text("You have vanished " + target.get().getUsername()));
                             }
 
                             return Command.SINGLE_SUCCESS;
                         })
-                        .then(RequiredArgumentBuilder.<CommandSource, String>argument("name", StringArgumentType.word())
-                                .executes(ctx -> {
-                                    if (!(ctx.getSource() instanceof Player player)) {
-                                        ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
-                                        return Command.SINGLE_SUCCESS;
-                                    }
-
-                                    if (!player.hasPermission("redisvanish.vanish.others")) {
-                                        player.sendMessage(Component.text("You do not have permission to use this command!"));
-                                        return Command.SINGLE_SUCCESS;
-                                    }
-
-                                    String name = StringArgumentType.getString(ctx, "name");
-                                    Optional<Player> target = plugin.getServer().getPlayer(name);
-
-                                    if (target.isEmpty()) {
-                                        player.sendMessage(Component.text("Player not found!"));
-                                        return Command.SINGLE_SUCCESS;
-                                    }
-
-                                    if (plugin.getVanishManager().isVanished(target.get())) {
-                                        plugin.getVanishManager().unVanish(target.get());
-                                        player.sendMessage(Component.text("You have unvanished " + target.get().getUsername()));
-                                    } else {
-                                        plugin.getVanishManager().vanish(target.get());
-                                        player.sendMessage(Component.text("You have vanished " + target.get().getUsername()));
-                                    }
-
-                                    return Command.SINGLE_SUCCESS;
-                                })
-                        )
                 )
-
                 .then(LiteralArgumentBuilder.<CommandSource>literal("reload")
                         .requires(src -> src.hasPermission("redisvanish.command.reload"))
                         .executes(ctx -> {
