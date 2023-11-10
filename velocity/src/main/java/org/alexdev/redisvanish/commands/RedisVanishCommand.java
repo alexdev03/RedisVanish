@@ -112,7 +112,7 @@ public final class RedisVanishCommand {
                                 return Command.SINGLE_SUCCESS;
                             }
 
-                            plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debug", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
+                            plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debugMessage", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
                                     + " vanished: " + plugin.getVanishManager().isVanished(player));
                             return Command.SINGLE_SUCCESS;
                         })
@@ -141,7 +141,7 @@ public final class RedisVanishCommand {
                                         return Command.SINGLE_SUCCESS;
                                     }
 
-                                    plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debug", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
+                                    plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debugMessage", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
                                             + " vanished: " + plugin.getVanishManager().isVanished(target.get()));
                                     return Command.SINGLE_SUCCESS;
                                 })

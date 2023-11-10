@@ -4,8 +4,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +14,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,16 +48,6 @@ public class ItemStackBuilder {
         plugin = JavaPlugin.getProvidingPlugin(this.getClass());
     }
 
-    public ItemStackBuilder(ConfigurationSection section) {
-        if (section.getItemStack("") == null || Objects.requireNonNull(section.getItemStack("")).getItemMeta() == null) {
-            throw new IllegalArgumentException("ItemStack cannot be null!");
-        }
-        itemMeta = section.getItemStack("").getItemMeta();
-
-        plugin = JavaPlugin.getProvidingPlugin(this.getClass());
-
-    }
-
     private void addPersistentData(Map<String, String> persistentData) {
         for (Map.Entry<String, String> entry : persistentData.entrySet()) {
             NamespacedKey key = new NamespacedKey(plugin, entry.getKey());
@@ -64,50 +55,10 @@ public class ItemStackBuilder {
         }
     }
 
-    public ConfigurationSection createSection(FileConfiguration config, String name, ItemStack itemStack) {
-        ConfigurationSection section = config.createSection(name);
-
-        section.set("", itemStack);
-
-        if (true) return section;
-
-
-        section.set("material", itemStack.getType().getKey().getKey());
-
-        section.set("amount", itemStack.getAmount());
-
-        if (!itemStack.hasItemMeta()) return section;
-
-        if (itemStack.getItemMeta().hasDisplayName()) section.set("name", itemStack.getItemMeta().getDisplayName());
-
-        if (itemStack.getItemMeta().hasLore()) section.set("lore", itemStack.getItemMeta().getLore());
-
-        if (itemStack.getItemMeta().hasCustomModelData())
-            section.set("customModelData", itemStack.getItemMeta().getCustomModelData());
-
-        if (itemStack.getItemMeta().hasEnchants())
-            section.set("enchants", itemStack.getItemMeta().getEnchants().keySet().stream().map((enchant -> enchant.getKey().getKey() + ":" + itemStack.getItemMeta().getEnchants().get(enchant))).collect(Collectors.toList()));
-
-        if (itemStack.getItemMeta().getPersistentDataContainer().getKeys().size() > 0) {
-            Map<String, String> persistentData = new HashMap<>();
-            for (NamespacedKey key : itemStack.getItemMeta().getPersistentDataContainer().getKeys()) {
-                persistentData.put(key.getKey(), itemStack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
-            }
-            section.set("persistentData", persistentData);
-        }
-
-        return section;
-    }
-
-
     public Material getMaterial() {
         return result.getType();
     }
 
-
-    public ItemStackBuilder(Material material, int amount, short durability) {
-        this(new ItemStack(material, amount, durability));
-    }
 
     public ItemStackBuilder(Material material, int amount) {
         this(new ItemStack(material, amount));
@@ -206,7 +157,6 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder removeEnchantment(Enchantment enchantment) {
         this.itemMeta.removeEnchant(enchantment);
-
         return this;
     }
 
@@ -280,25 +230,6 @@ public class ItemStackBuilder {
         if (placeholder.isEmpty() || replace.isEmpty()) return this;
 
         if (this.itemMeta.hasLore()) {
-            //this.itemMeta.lore(this.itemMeta.lore().stream().map(s -> Utils.componentColor(((TextComponent)s).content().replaceAll(placeholder, replace))).collect(Collectors.toList()));
-//            Map<Integer, Integer> map = new HashMap<>();
-//            for (int i = 0; i < this.itemMeta.getLore().size(); i++) {
-//                if (this.itemMeta.getLore().get(i).contains(placeholder)) {
-//                    map.put(i, this.itemMeta.getLore().get(i).indexOf(placeholder));
-//                    break;
-//                }
-//            }
-//            if (!indexes.isEmpty()) {
-//                int tmp = 0;
-//
-//                int start
-//
-//                List<String> fix = Utils.handleDescription(, replace);
-//
-//                for (int i = 0; i < indexes.size(); i++) {
-//
-//                }
-//            }
             this.itemMeta.setLore(this.itemMeta.getLore().stream().map(tmp -> color(tmp.replaceAll(placeholder, replace))).collect(Collectors.toList()));
         }
 
@@ -385,12 +316,6 @@ public class ItemStackBuilder {
 
     public final ItemStack build() {
         this.result.setItemMeta(this.itemMeta);
-
-//        if(nbt.size() > 0) { //For nbt
-//            NBTItem nbtItem = new NBTItem(result);
-//            nbt.forEach(nbtItem::setString);
-//            result = nbtItem.getItem();
-//        }
 
         return this.result;
     }

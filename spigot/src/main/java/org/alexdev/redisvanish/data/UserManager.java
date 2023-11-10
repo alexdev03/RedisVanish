@@ -37,6 +37,7 @@ public class UserManager {
 
                 addUser(user);
                 prepareRemoteUser(user);
+                plugin.getVanishManager().hidePlayer(player);
             });
         });
     }

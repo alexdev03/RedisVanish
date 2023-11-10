@@ -34,6 +34,7 @@ public class Messages {
     private String vanishedActionbar = "&7You are currently &evanished&7!";
     public String reloaded = "&aThe plugin has been reloaded!";
     public String error = "&cAn error occurred while executing the command! Error: %error%";
+    public String vanishTabPlaceholder = "&7[&bV&7]";
 
     private final Pattern hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})");
 
@@ -81,6 +82,10 @@ public class Messages {
 
         final Field fieldObj = field.get();
         return (String) fieldObj.get(this);
+    }
+
+    public String getColoredMessage(String message) {
+        return colorString(getRawMessage(message));
     }
 
     public String colorString(String text) {

@@ -7,7 +7,7 @@ dependencies {
     compileOnly files('lib/UnlimitedNametags-1.0.jar')
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.8.0"
     compileOnly 'com.github.Emibergo02:RedisChat:4.1.1'
-
+    compileOnly 'me.clip:placeholderapi:2.11.5'
 
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.12'
     implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
@@ -29,6 +29,8 @@ processResources {
 }
 
 shadowJar {
+    minimize()
+
     relocate 'com.github.stefvanschie.inventoryframework', 'org.alexdev.redisvanish.libraries.inventoryframework'
     relocate 'org.jetbrains', 'org.alexdev.redisvanish.libraries'
     relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
