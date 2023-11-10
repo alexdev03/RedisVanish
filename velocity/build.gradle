@@ -9,6 +9,7 @@ dependencies {
     implementation 'io.lettuce:lettuce-core:6.2.5.RELEASE'
     implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
     implementation 'com.github.Exlll.ConfigLib:configlib-velocity:dev-SNAPSHOT'
+    implementation 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
@@ -17,5 +18,6 @@ shadowJar {
     relocate 'org.bstats', 'org.alexdev.redisvanish.libraries.bstats'
     relocate 'io.lettuce', 'org.alexdev.redisvanish.libraries.lettuce'
     relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
+    relocate 'de.themoep.minedown', 'org.alexdev.redisvanish.libraries.minedown'
     minimize()
 }

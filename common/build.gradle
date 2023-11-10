@@ -8,3 +8,7 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
+
+shadowJar {
+    relocate 'org.jetbrains.annotations', 'org.alexdev.redisvanish.libraries.annotations'
+}

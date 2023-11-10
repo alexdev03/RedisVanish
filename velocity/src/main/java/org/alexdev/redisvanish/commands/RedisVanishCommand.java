@@ -9,7 +9,6 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.VelocityBrigadierMessage;
 import com.velocitypowered.api.proxy.Player;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.data.VanishLevel;
@@ -30,21 +29,21 @@ public final class RedisVanishCommand {
                 .executes(ctx -> {
 
                     if (!(ctx.getSource() instanceof Player player)) {
-                        ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
+                        plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "mustBeAPlayer");
                         return Command.SINGLE_SUCCESS;
                     }
 
                     if (!player.hasPermission("redisvanish.vanish")) {
-                        player.sendMessage(Component.text("You do not have permission to use this command!"));
+                        plugin.getConfigManager().getMessages().sendMessage(player, "noPermission");
                         return Command.SINGLE_SUCCESS;
                     }
 
                     if (plugin.getVanishManager().isVanished(player)) {
                         plugin.getVanishManager().unVanish(player);
-                        player.sendMessage(Component.text("You have been unvanished!"));
+                        plugin.getConfigManager().getMessages().sendMessage(player, "unVanished");
                     } else {
                         plugin.getVanishManager().vanish(player);
-                        player.sendMessage(Component.text("You have been vanished!"));
+                        plugin.getConfigManager().getMessages().sendMessage(player, "vanished");
                     }
 
                     return Command.SINGLE_SUCCESS;
@@ -60,12 +59,12 @@ public final class RedisVanishCommand {
                         })
                         .executes(ctx -> {
                             if (!(ctx.getSource() instanceof Player player)) {
-                                ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
+                                plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "mustBeAPlayer");
                                 return Command.SINGLE_SUCCESS;
                             }
 
                             if (!player.hasPermission("redisvanish.vanish.others")) {
-                                player.sendMessage(Component.text("You do not have permission to use this command!"));
+                                plugin.getConfigManager().getMessages().sendMessage(player, "noPermission");
                                 return Command.SINGLE_SUCCESS;
                             }
 
@@ -73,16 +72,16 @@ public final class RedisVanishCommand {
                             Optional<Player> target = plugin.getServer().getPlayer(name);
 
                             if (target.isEmpty()) {
-                                player.sendMessage(Component.text("Player not found!"));
+                                plugin.getConfigManager().getMessages().sendMessage(player, "playerNotFound", "%player%", name);
                                 return Command.SINGLE_SUCCESS;
                             }
 
                             if (plugin.getVanishManager().isVanished(target.get())) {
                                 plugin.getVanishManager().unVanish(target.get());
-                                player.sendMessage(Component.text("You have unvanished " + target.get().getUsername()));
+                                plugin.getConfigManager().getMessages().sendMessage(player, "unVanishedOther", "%player%", target.get().getUsername());
                             } else {
                                 plugin.getVanishManager().vanish(target.get());
-                                player.sendMessage(Component.text("You have vanished " + target.get().getUsername()));
+                                plugin.getConfigManager().getMessages().sendMessage(player, "vanishedOther", "%player%", target.get().getUsername());
                             }
 
                             return Command.SINGLE_SUCCESS;
@@ -93,7 +92,7 @@ public final class RedisVanishCommand {
                         .executes(ctx -> {
                             plugin.getConfigManager().reload();
                             plugin.getRedis().publishVanishLevels();
-                            ctx.getSource().sendMessage(Component.text("Velocitab has been reloaded!"));
+                            plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "reloaded");
                             return Command.SINGLE_SUCCESS;
                         })
                 )
@@ -102,20 +101,19 @@ public final class RedisVanishCommand {
                         .requires(src -> src.hasPermission("redisvanish.command.debug"))
                         .executes(ctx -> {
                             if (!(ctx.getSource() instanceof Player player)) {
-                                ctx.getSource().sendMessage(Component.text("You must be a player to use this command!"));
+                                plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "mustBeAPlayer");
                                 return Command.SINGLE_SUCCESS;
                             }
 
                             Optional<VanishLevel> vanishLevel = plugin.getVanishManager().getVanishLevel(player);
 
                             if (vanishLevel.isEmpty()) {
-                                ctx.getSource().sendMessage(Component.text("You do not have a vanish level!"));
+                                plugin.getConfigManager().getMessages().sendMessage(player, "noVanishLevel");
                                 return Command.SINGLE_SUCCESS;
                             }
 
-                            ctx.getSource().sendMessage(Component.text("Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
-                                    + " vanished: " + plugin.getVanishManager().isVanished(player)));
-
+                            plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debug", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
+                                    + " vanished: " + plugin.getVanishManager().isVanished(player));
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(RequiredArgumentBuilder.<CommandSource, String>argument("name", StringArgumentType.word())
@@ -132,20 +130,19 @@ public final class RedisVanishCommand {
                                     Optional<Player> target = plugin.getServer().getPlayer(name);
 
                                     if (target.isEmpty()) {
-                                        ctx.getSource().sendMessage(Component.text("Player not found!"));
+                                        plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "playerNotFound", "%player%", name);
                                         return Command.SINGLE_SUCCESS;
                                     }
 
                                     Optional<VanishLevel> vanishLevel = plugin.getVanishManager().getVanishLevel(target.get());
 
                                     if (vanishLevel.isEmpty()) {
-                                        ctx.getSource().sendMessage(Component.text("Target does not have a vanish level!"));
+                                        plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "noVanishLevelOther", "%player%", target.get().getUsername());
                                         return Command.SINGLE_SUCCESS;
                                     }
 
-                                    ctx.getSource().sendMessage(Component.text("Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
-                                            + " vanished: " + plugin.getVanishManager().isVanished(target.get())));
-
+                                    plugin.getConfigManager().getMessages().sendMessage(ctx.getSource(), "debug", "%message%", "Vanish level: " + vanishLevel.get().name() + " (" + vanishLevel.get().permission() + ")"
+                                            + " vanished: " + plugin.getVanishManager().isVanished(target.get()));
                                     return Command.SINGLE_SUCCESS;
                                 })
 

@@ -48,7 +48,7 @@ public class ItemStackBuilder {
     }
 
     public ItemStackBuilder(ConfigurationSection section) {
-        if(section.getItemStack("") == null || Objects.requireNonNull(section.getItemStack("")).getItemMeta() == null) {
+        if (section.getItemStack("") == null || Objects.requireNonNull(section.getItemStack("")).getItemMeta() == null) {
             throw new IllegalArgumentException("ItemStack cannot be null!");
         }
         itemMeta = section.getItemStack("").getItemMeta();
@@ -57,7 +57,7 @@ public class ItemStackBuilder {
 
     }
 
-    private void addPersistentData(Map<String,String> persistentData) {
+    private void addPersistentData(Map<String, String> persistentData) {
         for (Map.Entry<String, String> entry : persistentData.entrySet()) {
             NamespacedKey key = new NamespacedKey(plugin, entry.getKey());
             itemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, entry.getValue());
@@ -69,7 +69,7 @@ public class ItemStackBuilder {
 
         section.set("", itemStack);
 
-        if(true) return section;
+        if (true) return section;
 
 
         section.set("material", itemStack.getType().getKey().getKey());
@@ -88,8 +88,8 @@ public class ItemStackBuilder {
         if (itemStack.getItemMeta().hasEnchants())
             section.set("enchants", itemStack.getItemMeta().getEnchants().keySet().stream().map((enchant -> enchant.getKey().getKey() + ":" + itemStack.getItemMeta().getEnchants().get(enchant))).collect(Collectors.toList()));
 
-        if(itemStack.getItemMeta().getPersistentDataContainer().getKeys().size() > 0) {
-            Map<String,String> persistentData = new HashMap<>();
+        if (itemStack.getItemMeta().getPersistentDataContainer().getKeys().size() > 0) {
+            Map<String, String> persistentData = new HashMap<>();
             for (NamespacedKey key : itemStack.getItemMeta().getPersistentDataContainer().getKeys()) {
                 persistentData.put(key.getKey(), itemStack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
             }
@@ -241,27 +241,24 @@ public class ItemStackBuilder {
 
         text = ChatColor.translateAlternateColorCodes('&', text);
 
-        if (true) {
-            final char colorChar = ChatColor.COLOR_CHAR;
+        final char colorChar = ChatColor.COLOR_CHAR;
 
-            final Matcher matcher = hexPattern.matcher(text);
-            final StringBuffer buffer = new StringBuffer(text.length() + 4 * 8);
+        final Matcher matcher = hexPattern.matcher(text);
+        final StringBuffer buffer = new StringBuffer(text.length() + 4 * 8);
 
-            while (matcher.find()) {
-                final String group = matcher.group(1);
+        while (matcher.find()) {
+            final String group = matcher.group(1);
 
-                matcher.appendReplacement(buffer, colorChar + "x"
-                        + colorChar + group.charAt(0) + colorChar + group.charAt(1)
-                        + colorChar + group.charAt(2) + colorChar + group.charAt(3)
-                        + colorChar + group.charAt(4) + colorChar + group.charAt(5));
-            }
-
-            text = matcher.appendTail(buffer).toString();
+            matcher.appendReplacement(buffer, colorChar + "x"
+                    + colorChar + group.charAt(0) + colorChar + group.charAt(1)
+                    + colorChar + group.charAt(2) + colorChar + group.charAt(3)
+                    + colorChar + group.charAt(4) + colorChar + group.charAt(5));
         }
+
+        text = matcher.appendTail(buffer).toString();
 
         return text;
     }
-    
 
 
     public ItemStackBuilder setPlaceholder(String placeholder, String replace) {
@@ -280,7 +277,7 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder setFixedPlaceholder(String placeholder, String replace) {
 
-        if(placeholder.isEmpty() || replace.isEmpty()) return this;
+        if (placeholder.isEmpty() || replace.isEmpty()) return this;
 
         if (this.itemMeta.hasLore()) {
             //this.itemMeta.lore(this.itemMeta.lore().stream().map(s -> Utils.componentColor(((TextComponent)s).content().replaceAll(placeholder, replace))).collect(Collectors.toList()));

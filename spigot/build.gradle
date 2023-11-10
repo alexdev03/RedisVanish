@@ -14,6 +14,7 @@ dependencies {
     implementation 'com.github.Exlll.ConfigLib:configlib-velocity:dev-SNAPSHOT'
     implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'com.github.alexdev03:drink:1.5.1'
+    implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
@@ -31,5 +32,6 @@ shadowJar {
     relocate 'com.github.stefvanschie.inventoryframework', 'org.alexdev.redisvanish.libraries.inventoryframework'
     relocate 'org.jetbrains', 'org.alexdev.redisvanish.libraries'
     relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
-    relocate('com.jonahseguin.drink', 'org.alexdev.redisvanish.libraries.drink')
+    relocate 'com.jonahseguin.drink', 'org.alexdev.redisvanish.libraries.drink'
+    relocate 'de.themoep.minedown', 'org.alexdev.redisvanish.libraries.minedown'
 }

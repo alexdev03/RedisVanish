@@ -1,7 +1,6 @@
 package org.alexdev.redisvanish.vanish;
 
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.data.RemoteUser;
 import org.alexdev.redisvanish.data.User;
@@ -230,7 +229,7 @@ public class VanishManager {
             for (Player player : plugin.getServer().getOnlinePlayers()) {
                 if (isVanished(player) && hasProperty(player, VanishProperty.ACTION_BAR)) {
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent("§7§oYou are currently vanished"));
+                            plugin.getConfigManager().getMessages().getMessage("vanishedActionbar"));
 
                 }
             }

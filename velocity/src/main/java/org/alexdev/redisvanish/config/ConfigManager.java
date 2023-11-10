@@ -12,6 +12,7 @@ public class ConfigManager {
 
     private final RedisVanish plugin;
     private Config config;
+    private Messages messages;
 
 
     public ConfigManager(RedisVanish plugin) {
@@ -30,6 +31,14 @@ public class ConfigManager {
                 Config.class,
                 properties
         );
+
+        File messagesFile = new File(plugin.getDataDirectory().toFile(), "messages.yml");
+
+        messages = YamlConfigurations.update(
+                messagesFile.toPath(),
+                Messages.class,
+                properties
+        );
     }
 
     public void saveConfigs() {
@@ -37,6 +46,7 @@ public class ConfigManager {
                 .footer("Authors: AlexDev_")
                 .build();
         YamlConfigurations.save(new File(plugin.getDataDirectory().toFile(), "config.yml").toPath(), Config.class, config, properties);
+        YamlConfigurations.save(new File(plugin.getDataDirectory().toFile(), "messages.yml").toPath(), Messages.class, messages, properties);
     }
 
     public void reload() {
@@ -44,5 +54,6 @@ public class ConfigManager {
                 .footer("Authors: AlexDev_")
                 .build();
         config = YamlConfigurations.load(new File(plugin.getDataDirectory().toFile(), "config.yml").toPath(), Config.class, properties);
+        messages = YamlConfigurations.load(new File(plugin.getDataDirectory().toFile(), "messages.yml").toPath(), Messages.class, properties);
     }
 }
