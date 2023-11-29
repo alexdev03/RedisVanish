@@ -38,6 +38,7 @@ public class RedisVanish {
     private final ConfigManager configManager;
     private final VanishManager vanishManager;
     private RedisImpl redis;
+    private PlayerListener playerListener;
 
     @Inject
     public RedisVanish(@NotNull ProxyServer server, @NotNull Logger logger, @DataDirectory Path dataDirectory) {
@@ -53,7 +54,8 @@ public class RedisVanish {
     public void onProxyInitialization(@NotNull ProxyInitializeEvent event) {
         redis = new RedisImpl(RedisClient.create(configManager.getConfig().getRedisUri()), 10, this);
         this.userManager = new UserManager(this);
-        server.getEventManager().register(this, new PlayerListener(this));
+        playerListener = new PlayerListener(this);
+        server.getEventManager().register(this, playerListener);
         loadHooks();
         registerCommands();
         logger.info("Successfully enabled RedisVanish");

@@ -2,7 +2,7 @@ name: RedisVanish
 version: '${version}'
 main: org.alexdev.redisvanish.RedisVanish
 api-version: '1.16'
-load: STARTUP
+load: POSTWORLD
 authors: [ AlexDev_ ]
 softdepend:
   - UnlimitedNameTags

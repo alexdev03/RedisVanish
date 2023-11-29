@@ -39,6 +39,8 @@ public class VanishManager {
             return true;
         }
 
+//        System.out.println("Is vanished " + target.getUsername() + " : " + isVanished(target));
+
         Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
 
         if (targetVanishLevel.isEmpty()) {
@@ -66,6 +68,8 @@ public class VanishManager {
 
         final String currentServer = getServer(player);
 
+        if (currentServer.isEmpty()) return false;
+
         return targetUser.isVanished(currentServer);
     }
 
@@ -73,8 +77,12 @@ public class VanishManager {
     public String getServer(@NotNull Player player) {
         var hook = plugin.getHook(VelocitabHook.class);
         return hook
-                .map(velocitabHook -> velocitabHook.getCurrentGroup(player))
-                .orElseGet(() -> player.getCurrentServer().map(s -> s.getServer().getServerInfo().getName()).orElse(""));
+                .map(velocitabHook -> {
+                    String server = velocitabHook.getCurrentGroup(player);
+                    return server.isEmpty() ? plugin.getPlayerListener().getServer(player.getUniqueId()).orElse("") : server;
+                })
+                .orElseGet(() -> player.getCurrentServer().map(s -> s.getServer().getServerInfo().getName())
+                        .orElse(""));
     }
 
     public Optional<VanishLevel> getVanishLevel(@NotNull Player player) {

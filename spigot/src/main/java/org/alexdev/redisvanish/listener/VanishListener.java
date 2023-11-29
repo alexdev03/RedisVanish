@@ -100,6 +100,7 @@ public class VanishListener implements Listener {
     @EventHandler
     private void entityDamageByVanish(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player player)) return;
+        if(player.hasMetadata("NPC")) return;
         if (!isInVanish(player)) return;
         if (plugin.getVanishManager().hasProperty(player, VanishProperty.DAMAGE_OTHERS)) return;
         e.setCancelled(true);
@@ -108,6 +109,7 @@ public class VanishListener implements Listener {
     @EventHandler
     private void onDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player player)) return;
+        if(player.hasMetadata("NPC")) return;
         if (!isInVanish(player)) return;
         if (plugin.getVanishManager().hasProperty(player, VanishProperty.DAMAGE_ME)) return;
         e.setCancelled(true);
@@ -116,6 +118,7 @@ public class VanishListener implements Listener {
     @EventHandler
     private void onPlayerInteract(PlayerInteractEntityEvent e) {
         if (!isInVanish(e.getPlayer())) return;
+        if(e.getRightClicked().hasMetadata("NPC")) return;
         if (!plugin.getVanishManager().hasProperty(e.getPlayer(), VanishProperty.PLAYER_INVENTORY)) return;
 
         if (e.getRightClicked() instanceof Player target) {

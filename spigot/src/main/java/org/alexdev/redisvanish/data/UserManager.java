@@ -6,10 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UserManager {
 
@@ -18,13 +20,19 @@ public class UserManager {
     private final Map<UUID, User> users;
     @Getter
     private final Map<UUID, RemoteUser> remoteUsers;
+    @Getter
+    private final List<RemoteUser> loadedRemoteUsers;
 
     public UserManager(RedisVanish plugin) {
         this.plugin = plugin;
         this.users = new ConcurrentHashMap<>();
         this.remoteUsers = new ConcurrentHashMap<>();
-        loadLocalUsers();
+        this.loadedRemoteUsers = new CopyOnWriteArrayList<>();
+        this.loadLocalUsers();
+        this.loadRemoteUsers();
     }
+
+
 
     private void loadLocalUsers() {
         users.clear();
@@ -42,6 +50,18 @@ public class UserManager {
         });
     }
 
+    private void loadRemoteUsers() {
+        remoteUsers.clear();
+        plugin.getRedis().getRemoteUsers().thenAccept(remoteUsers -> {
+            if (remoteUsers == null) {
+                return;
+            }
+
+            remoteUsers.forEach(this::addRemoteUser);
+        });
+    }
+
+
     @NotNull
     public User getUser(@NotNull Player player) {
         return users.get(player.getUniqueId());
@@ -53,28 +73,43 @@ public class UserManager {
 
     public void removeUser(@NotNull User user) {
         users.remove(user.uuid());
+        loadedRemoteUsers.removeIf(remoteUser -> remoteUser.uuid().equals(user.uuid()));
     }
 
     public void removeUser(@NotNull UUID uuid) {
         users.remove(uuid);
+        loadedRemoteUsers.removeIf(remoteUser -> remoteUser.uuid().equals(uuid));
     }
 
     public void replaceUser(@NotNull User user) {
-        boolean wasVanished = false;
+        boolean wasVanished;
         final User old = users.get(user.uuid());
+
+        final Player player = Bukkit.getPlayer(user.uuid());
+
+        if (player==null) {
+            return;
+        }
+
         users.put(user.uuid(), user);
 
         if (old != null) {
             wasVanished = old.isVanished(plugin.getConfigManager().getConfig().getServerType());
+        } else {
+            wasVanished = false;
         }
 
         boolean isVanished = user.isVanished(plugin.getConfigManager().getConfig().getServerType());
 
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+
+        }, 5);
+
         if (wasVanished != isVanished) {
             if (isVanished) {
-                plugin.getVanishManager().hidePlayer(Bukkit.getPlayer(user.uuid()));
+                plugin.getVanishManager().hidePlayer(player);
             } else {
-                plugin.getVanishManager().showPlayer(Bukkit.getPlayer(user.uuid()));
+                plugin.getVanishManager().showPlayer(player);
             }
         }
 
@@ -126,8 +161,9 @@ public class UserManager {
                     .findFirst().orElse(-1)).orElse(-1);
 
 
-            RemoteUser remoteUser = new RemoteUser(user.uuid(), user.name(), hasPermission, isVanished, vanishLevelInt);
+            RemoteUser remoteUser = new RemoteUser(user.uuid(), user.name(), hasPermission, isVanished, vanishLevelInt, System.currentTimeMillis());
             plugin.getRedis().sendRemoteUser(remoteUser);
+            loadedRemoteUsers.add(remoteUser);
         } catch (Throwable e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Error preparing remote user", e);
         }

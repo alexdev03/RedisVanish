@@ -11,6 +11,7 @@ import org.alexdev.redisvanish.data.VanishProperty;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
@@ -67,7 +68,6 @@ public class ProtocolLibHook extends Hook implements Listener {
 
 
         locations.add(location);
-
     }
 
     @EventHandler
@@ -124,9 +124,20 @@ public class ProtocolLibHook extends Hook implements Listener {
 
                         PacketContainer packet = event.getPacket();
 
+
                         if (packet.getType() == PacketType.Play.Server.NAMED_SOUND_EFFECT) {
-                            String sound = packet.getSoundEffects().read(0).name().toLowerCase();
-                            if (!sound.contains("chest") && !sound.contains("door") && !sound.contains("shulker") && !sound.contains("barrel")) {
+                            Sound sound;
+                            try {
+                                sound = packet.getSoundEffects().readSafely(0);
+                            } catch (IllegalStateException | NullPointerException exception) {
+                                // Should "fix" IllegalStateException: Unable to invoke method public static org.bukkit.Sound org.bukkit.craftbukkit.v1_19_R2.CraftSound.getBukkit(net.minecraft.sounds.SoundEffect);
+                                return;
+                            }
+
+                            if (sound == null) return;
+
+                            String soundName = sound.name().toLowerCase();
+                            if (!soundName.contains("chest") && !soundName.contains("door") && !soundName.contains("shulker") && !soundName.contains("barrel")) {
                                 return;
                             }
                             int z = packet.getIntegers().read(2) / 8;
@@ -138,6 +149,7 @@ public class ProtocolLibHook extends Hook implements Listener {
                             if (notContainsLocation(location) && notFoundAround(location)) {
                                 return;
                             }
+
 
                             event.setCancelled(true);
 

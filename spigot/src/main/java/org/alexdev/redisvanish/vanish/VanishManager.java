@@ -30,11 +30,13 @@ public class VanishManager {
         this.vanishActionbar();
     }
 
-    public boolean isVanished(@NotNull User user) {
+    public boolean isVanished(User user) {
+        if(user == null) return false;
         return user.isVanished(plugin.getConfigManager().getConfig().getServerType());
     }
 
-    public boolean hasProperty(@NotNull User user, @NotNull VanishProperty property) {
+    public boolean hasProperty(User user, @NotNull VanishProperty property) {
+        if (user == null) return false;
         return user.hasProperty(property, plugin.getConfigManager().getConfig().getServerType());
     }
 

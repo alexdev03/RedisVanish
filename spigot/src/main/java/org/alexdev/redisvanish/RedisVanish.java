@@ -99,6 +99,7 @@ public final class RedisVanish extends JavaPlugin {
     public void onDisable() {
         redis.close();
         hooks.forEach(Hook::unregister);
+        getServer().getScheduler().cancelTasks(this);
         getLogger().info("RedisVanish has been disabled!");
     }
 }

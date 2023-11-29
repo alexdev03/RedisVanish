@@ -56,7 +56,6 @@ public class PlayerListener implements Listener {
     @EventHandler
     private void onQuit(PlayerQuitEvent e) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().removeUser(e.getPlayer().getUniqueId()), 5L);
-        plugin.getRedis().removeRemoteUser(e.getPlayer().getUniqueId());
     }
 
 }

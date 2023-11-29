@@ -14,8 +14,10 @@ import org.alexdev.redisvanish.redis.data.RedisPubSub;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
 
@@ -31,6 +33,7 @@ public class RedisHandler extends RedisImplementation {
         this.vanishLevels = new ConcurrentSkipListMap<>();
         this.subscribe();
         this.loadVanishLevels();
+        this.publishTask();
     }
 
     private void subscribe() {
@@ -41,7 +44,7 @@ public class RedisHandler extends RedisImplementation {
                     try {
                         User user = gson.fromJson(message, User.class);
                         plugin.getUserManager().replaceUser(user);
-                        plugin.getUserManager().prepareRemoteUser(user);
+//                        plugin.getUserManager().prepareRemoteUser(user);
                     } catch (Exception ex) {
                         plugin.getLogger().log(Level.SEVERE, "Error parsing user update", ex);
                     }
@@ -72,11 +75,18 @@ public class RedisHandler extends RedisImplementation {
                         final int type = object.get("type").getAsInt();
 
                         if (type == 1) {
-                            RemoteUser user = gson.fromJson(object.get("user"), RemoteUser.class);
+                            final RemoteUser user = gson.fromJson(object.get("user"), RemoteUser.class);
                             plugin.getUserManager().addRemoteUser(user);
                         } else if (type == 2) {
-                            UUID uuid = UUID.fromString(object.get("uuid").getAsString());
+                            final String group = object.get("group").getAsString();
+                            if (!plugin.getConfigManager().getConfig().getServerType().equals(group)) return;
+                            final UUID uuid = UUID.fromString(object.get("uuid").getAsString());
                             plugin.getUserManager().removeRemoteUser(uuid);
+                        } else if (type == 3) {
+                            final List<UUID> users = gson.fromJson(object.get("users"), new TypeToken<List<UUID>>() {
+                            }.getType());
+
+                            users.forEach(plugin.getUserManager()::removeRemoteUser);
                         }
                     } catch (Exception ex) {
                         plugin.getLogger().log(Level.SEVERE, "Error parsing remote user update", ex);
@@ -91,18 +101,9 @@ public class RedisHandler extends RedisImplementation {
         JsonObject object = new JsonObject();
         object.addProperty("type", 1);
         object.add("user", gson.toJsonTree(user));
+        object.addProperty("time", System.currentTimeMillis());
         this.getConnectionAsync(connection -> {
             connection.hset(RedisKeys.REMOTE_USER.getKey(), user.uuid().toString(), object.toString());
-            return connection.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
-        });
-    }
-
-    public void removeRemoteUser(@NotNull UUID uuid) {
-        JsonObject object = new JsonObject();
-        object.addProperty("type", 2);
-        object.addProperty("uuid", uuid.toString());
-        this.getConnectionAsync(connection -> {
-            connection.hdel(RedisKeys.REMOTE_USER.getKey(), uuid.toString());
             return connection.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
         });
     }
@@ -127,6 +128,26 @@ public class RedisHandler extends RedisImplementation {
         Type empMapType = new TypeToken<Map<Integer, VanishLevel>>() {
         }.getType();
         return gson.fromJson(json, empMapType);
+    }
+
+    public CompletionStage<List<RemoteUser>> getRemoteUsers() {
+        return getConnectionAsync(connection -> connection.hgetall(RedisKeys.REMOTE_USER.getKey())
+                .thenApply(map -> gson.fromJson(map.values().toString(),
+                        new TypeToken<List<RemoteUser>>() {
+                        }.getType())));
+    }
+
+    public void publishRemoteUsers(List<RemoteUser> remoteUsers) {
+        remoteUsers.forEach(this::sendRemoteUser);
+    }
+
+    public void publishTask() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            plugin.getUserManager().getLoadedRemoteUsers().forEach(r -> {
+                r.time(System.currentTimeMillis());
+                sendRemoteUser(r);
+            });
+        }, 0, 20 * 15);
     }
 
 

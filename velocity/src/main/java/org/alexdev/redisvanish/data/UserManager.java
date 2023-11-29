@@ -16,7 +16,7 @@ public class UserManager {
     public UserManager(RedisVanish plugin) {
         this.plugin = plugin;
         this.users = new ConcurrentHashMap<>();
-        loadLocalUsers();
+        this.loadLocalUsers();
     }
 
     private void loadLocalUsers() {
