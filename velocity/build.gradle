@@ -3,7 +3,7 @@ dependencies {
 
     compileOnly 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
     compileOnly 'org.projectlombok:lombok:1.18.30'
-    compileOnly 'net.william278:velocitab:1.5.2-7eb8f2d'
+    compileOnly 'net.william278:velocitab:1.6.2'
 
     implementation 'org.bstats:bstats-velocity:3.0.2'
     implementation 'io.lettuce:lettuce-core:6.2.5.RELEASE'

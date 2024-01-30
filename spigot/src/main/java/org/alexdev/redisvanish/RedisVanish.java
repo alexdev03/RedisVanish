@@ -13,6 +13,7 @@ import org.alexdev.redisvanish.hook.ProtocolLibHook;
 import org.alexdev.redisvanish.hook.RedisChatHook;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.alexdev.redisvanish.hook.papi.PlaceholderAPIHook;
+import org.alexdev.redisvanish.listener.PacketEventsListener;
 import org.alexdev.redisvanish.listener.PlayerListener;
 import org.alexdev.redisvanish.listener.VanishListener;
 import org.alexdev.redisvanish.redis.RedisHandler;
@@ -34,6 +35,16 @@ public final class RedisVanish extends JavaPlugin {
     private UserManager userManager;
     private InventoryManager inventoryManager;
     private List<Hook> hooks;
+    private PacketEventsListener packetEventsListener;
+
+    @Override
+    public void onLoad() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PacketEvents")) {
+            getLogger().info("PacketEvents found, hooking into it");
+            packetEventsListener = new PacketEventsListener(this);
+            packetEventsListener.onLoad();
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -93,6 +104,10 @@ public final class RedisVanish extends JavaPlugin {
     private void loadListeners() {
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new VanishListener(this), this);
+
+        if (packetEventsListener != null) {
+            packetEventsListener.onEnable();
+        }
     }
 
     @Override

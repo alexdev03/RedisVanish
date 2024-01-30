@@ -8,6 +8,7 @@ dependencies {
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0"
     compileOnly 'com.github.Emibergo02:RedisChat:4.1.1'
     compileOnly 'me.clip:placeholderapi:2.11.5'
+    compileOnly 'com.github.retrooper.packetevents:spigot:2.2.0'
 
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.12'
     implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'

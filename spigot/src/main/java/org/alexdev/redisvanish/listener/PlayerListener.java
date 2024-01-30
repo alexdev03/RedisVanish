@@ -29,7 +29,7 @@ public class PlayerListener implements Listener {
         });
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     private void onJoin(PlayerLoginEvent e) {
         User user = plugin.getUserManager().getUser(e.getPlayer());
 

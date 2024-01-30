@@ -19,7 +19,6 @@ version = "$ext.version"
 description = "$ext.description"
 
 
-
 allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
 //    apply plugin: 'checkstyle'
@@ -36,7 +35,10 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://repo.william278.net/snapshots/' }
+        maven {
+            name "william278Releases"
+            url "https://repo.william278.net/releases"
+        }
         maven { url 'https://repo.papermc.io/repository/maven-public/' }
         maven { url 'https://jitpack.io' }
         maven {
@@ -44,7 +46,7 @@ allprojects {
             url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
         }
         maven { url "https://repo.dmulloy2.net/repository/public/" }
-        maven { url = 'https://repo.minebench.de/'}
+        maven { url = 'https://repo.minebench.de/' }
         maven {
             url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
         }

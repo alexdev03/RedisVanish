@@ -109,6 +109,9 @@ public class VanishManager {
             }
 
             if (isVanished(onlinePlayer) && !canSee(player, onlinePlayer)) {
+                if (player.getName().equals("AlexDev_")) {
+                    System.out.println("Hiding " + onlinePlayer.getName() + " from " + player.getName());
+                }
                 player.hidePlayer(plugin, onlinePlayer);
             }
         }
@@ -160,7 +163,7 @@ public class VanishManager {
         Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
 
         if (targetVanishLevel.isEmpty()) {
-            plugin.getLogger().warning("Target " + target.getName() + " has no vanish level, this should not happen");
+            //plugin.getLogger().warning("Target " + target.getName() + " has no vanish level, this should not happen");
             return true;
         }
 

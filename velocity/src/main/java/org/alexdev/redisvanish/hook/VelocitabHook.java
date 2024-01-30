@@ -80,7 +80,7 @@ public class VelocitabHook extends Hook {
 
     @NotNull
     public String getCurrentGroup(@NotNull Player player) {
-        return velocitabAPI.getServerGroup(player);
+        return velocitabAPI.getServerGroup(player).name();
     }
 
     @Subscribe
