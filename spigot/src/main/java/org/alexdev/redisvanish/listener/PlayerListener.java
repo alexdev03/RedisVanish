@@ -19,21 +19,21 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     private void onJoin(AsyncPlayerPreLoginEvent e) {
-        plugin.getRedis().loadUser(e.getUniqueId()).thenAccept(user -> {
-            if (user == null) {
-               plugin.getLogger().warning("User " + e.getName() + " has no data in Redis, this should not happen");
-               return;
-            }
-
-            plugin.getUserManager().addUser(user);
-        });
+//        plugin.getRedis().loadUser(e.getUniqueId()).thenAccept(user -> {
+//            if (user == null) {
+//               plugin.getLogger().warning("User " + e.getName() + " has no data in Redis, this should not happen");
+//               return;
+//            }
+//
+//            plugin.getUserManager().addUser(user);
+//        });
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     private void onJoin(PlayerLoginEvent e) {
         User user = plugin.getUserManager().getUser(e.getPlayer());
 
-        plugin.getVanishManager().updateVanished(e.getPlayer());
+//        plugin.getVanishManager().updateVanished(e.getPlayer());
 
         if (!plugin.getVanishManager().isVanished(user)) {
             return;
@@ -46,15 +46,23 @@ public class PlayerListener implements Listener {
     private void onJoin(PlayerJoinEvent e) {
         User user = plugin.getUserManager().getUser(e.getPlayer());
 
+        plugin.getVanishManager().updateVanished(e.getPlayer());
+
+
         if (plugin.getVanishManager().isVanished(user)) {
             e.setJoinMessage(null);
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().prepareRemoteUser(user), 1L);
+//        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().prepareRemoteUser(user), 1L);
     }
 
     @EventHandler
     private void onQuit(PlayerQuitEvent e) {
+        User user = plugin.getUserManager().getUser(e.getPlayer());
+
+        if (plugin.getVanishManager().isVanished(user)) {
+            e.setQuitMessage(null);
+        }
         Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getUserManager().removeUser(e.getPlayer().getUniqueId()), 5L);
     }
 

@@ -5,14 +5,15 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.projectlombok:lombok:1.18.30'
     compileOnly files('lib/UnlimitedNametags-1.0.jar')
-    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0"
-    compileOnly 'com.github.Emibergo02:RedisChat:4.1.1'
+//    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0"
+    compileOnly 'com.github.Emibergo02:RedisChat:4.4.4b'
     compileOnly 'me.clip:placeholderapi:2.11.5'
     compileOnly 'com.github.retrooper.packetevents:spigot:2.2.0'
+    compileOnly "de.exlll:configlib-yaml:${configlibVersion}"
+    compileOnly "de.exlll:configlib-paper:${configlibVersion}"
 
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.12'
-    implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
-    implementation 'com.github.Exlll.ConfigLib:configlib-velocity:dev-SNAPSHOT'
+
     implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'com.github.alexdev03:drink:1.5.1'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
@@ -21,8 +22,7 @@ dependencies {
 }
 
 processResources {
-    def props = [version: version]
-    inputs.properties props
+    def props = project.properties
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
@@ -34,7 +34,7 @@ shadowJar {
 
     relocate 'com.github.stefvanschie.inventoryframework', 'org.alexdev.redisvanish.libraries.inventoryframework'
     relocate 'org.jetbrains', 'org.alexdev.redisvanish.libraries'
-    relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
+//    relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
     relocate 'com.jonahseguin.drink', 'org.alexdev.redisvanish.libraries.drink'
     relocate 'de.themoep.minedown', 'org.alexdev.redisvanish.libraries.minedown'
 }

@@ -44,4 +44,6 @@ public class RedisImplementation extends RedisAbstract {
         this.getConnectionAsync(connection -> connection.publish(RedisKeys.USER_UPDATE.getKey(), gson.toJson(user)));
     }
 
+
+
 }

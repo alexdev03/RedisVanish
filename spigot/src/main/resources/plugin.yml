@@ -10,3 +10,5 @@ softdepend:
   - RedisChat
 libraries:
   - io.lettuce:lettuce-core:6.2.5.RELEASE
+  - de.exlll:configlib-yaml:${configlibVersion}
+  - de.exlll:configlib-paper:${configlibVersion}

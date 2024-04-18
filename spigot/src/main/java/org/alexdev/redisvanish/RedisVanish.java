@@ -4,12 +4,12 @@ import com.jonahseguin.drink.CommandService;
 import com.jonahseguin.drink.Drink;
 import io.lettuce.core.RedisClient;
 import lombok.Getter;
+import org.alexdev.redisvanish.commands.RedisVanishSpigotCommand;
 import org.alexdev.redisvanish.commands.VanishSettingsCommand;
 import org.alexdev.redisvanish.config.ConfigManager;
 import org.alexdev.redisvanish.data.UserManager;
 import org.alexdev.redisvanish.gui.InventoryManager;
 import org.alexdev.redisvanish.hook.Hook;
-import org.alexdev.redisvanish.hook.ProtocolLibHook;
 import org.alexdev.redisvanish.hook.RedisChatHook;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.alexdev.redisvanish.hook.papi.PlaceholderAPIHook;
@@ -69,12 +69,6 @@ public final class RedisVanish extends JavaPlugin {
             hooks.add(hook);
         }
 
-        if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-            ProtocolLibHook hook = new ProtocolLibHook(this);
-            hook.register();
-            hooks.add(hook);
-        }
-
         if (Bukkit.getPluginManager().isPluginEnabled("RedisChat")) {
             RedisChatHook hook = new RedisChatHook(this);
             hook.register();
@@ -98,6 +92,7 @@ public final class RedisVanish extends JavaPlugin {
     private void loadCommands() {
         CommandService drink = Drink.get(this);
         drink.register(new VanishSettingsCommand(this), "vanishsettings", "vs");
+        drink.register(new RedisVanishSpigotCommand(this), "redisvanishspigot", "rvs");
         drink.registerCommands();
     }
 

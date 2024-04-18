@@ -6,9 +6,14 @@ public enum RedisKeys {
 
     USER("redisvanish:user"),
     USER_UPDATE("redisvanish:user:update"),
+    USER_SET_CACHE("redisvanish:user:setcache"),
+    USER_CACHE_REQUEST("redisvanish:user:cacherequest"),
+    USER_JOIN("redisvanish:user:join"),
+    USER_LEAVE("redisvanish:user:leave"),
     REMOTE_USER("redisvanish:remoteuser"),
     REMOTE_USER_UPDATE("redisvanish:remoteuser:update"),
     VANISH_LEVELS("redisvanish:vanish:levels"),
+    VANISH_LEVELS_REQUEST("redisvanish:vanish:levels:request"),
     VANISH_LEVELS_UPDATE("redisvanish:vanish:levels:update")
     ;
 

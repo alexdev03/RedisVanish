@@ -108,9 +108,11 @@ public class VanishManager {
                 continue;
             }
 
+//            System.out.println("Checking if " + onlinePlayer.getName() + " is vanished : " + isVanished(onlinePlayer) + " and can see " + onlinePlayer.getName() + " : " + canSee(player, onlinePlayer));
+
             if (isVanished(onlinePlayer) && !canSee(player, onlinePlayer)) {
-                if (player.getName().equals("AlexDev_")) {
-                    System.out.println("Hiding " + onlinePlayer.getName() + " from " + player.getName());
+                if (true || player.getName().equals("AlexDev_")) {
+//                    System.out.println("Hiding " + onlinePlayer.getName() + " from " + player.getName());
                 }
                 player.hidePlayer(plugin, onlinePlayer);
             }
@@ -160,14 +162,14 @@ public class VanishManager {
             return true;
         }
 
-        Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
+        final Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
 
         if (targetVanishLevel.isEmpty()) {
-            //plugin.getLogger().warning("Target " + target.getName() + " has no vanish level, this should not happen");
+            plugin.getLogger().warning("Target " + target.getName() + " has no vanish level, this should not happen");
             return true;
         }
 
-        Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
+        final Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
 
         //            System.out.println("Player " + player.getName() + " has no vanish level, can't see");
         return playerVanishLevel.filter(level -> checkVanishLevels(level, targetVanishLevel.get())).isPresent();
@@ -199,7 +201,7 @@ public class VanishManager {
                 .findFirst();
     }
 
-    private int getOrder(@NotNull VanishLevel vanishLevel) {
+    public int getOrder(@NotNull VanishLevel vanishLevel) {
         return plugin.getRedis().getVanishLevels().entrySet().stream()
                 .filter(entry -> entry.getValue().equals(vanishLevel))
                 .map(Map.Entry::getKey)

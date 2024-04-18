@@ -5,6 +5,7 @@ import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -28,7 +29,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-@Plugin(id = "redisvanish")
+@Plugin(id = "redisvanish", dependencies = {
+        @Dependency(id = "velocitab", optional = true)
+})
 public class RedisVanish {
     private final ProxyServer server;
     private final Logger logger;
@@ -62,6 +65,10 @@ public class RedisVanish {
     }
 
     private void loadHooks() {
+        loadVelocitabHook();
+    }
+
+    private void loadVelocitabHook() {
         if (server.getPluginManager().isLoaded("velocitab")) {
             VelocitabHook velocitabHook = new VelocitabHook(this);
             velocitabHook.register();
@@ -79,9 +86,9 @@ public class RedisVanish {
 
     @Subscribe
     public void onProxyShutdown(@NotNull ProxyShutdownEvent event) {
-        server.getScheduler().tasksByPlugin(this).forEach(ScheduledTask::cancel);
 //        hooks.values().forEach(Hook::unregister);
         redis.close();
+        server.getScheduler().tasksByPlugin(this).forEach(ScheduledTask::cancel);
         logger.info("Successfully disabled RedisVanish");
     }
 

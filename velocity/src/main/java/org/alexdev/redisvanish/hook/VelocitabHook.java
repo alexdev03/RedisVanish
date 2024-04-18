@@ -4,7 +4,9 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import lombok.Getter;
+import net.william278.velocitab.Velocitab;
 import net.william278.velocitab.api.VelocitabAPI;
+import net.william278.velocitab.config.Group;
 import net.william278.velocitab.vanish.VanishIntegration;
 import org.alexdev.redisvanish.RedisVanish;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class VelocitabHook extends Hook {
 
     private VelocitabAPI velocitabAPI;
+    private Velocitab velocitab;
     private final List<Player> justQuit;
 
     public VelocitabHook(RedisVanish plugin) {
@@ -26,13 +29,15 @@ public class VelocitabHook extends Hook {
         plugin.getServer().getEventManager().register(plugin, this);
     }
 
+    @SuppressWarnings("all")
     public void register() {
         this.velocitabAPI = VelocitabAPI.getInstance();
+        this.velocitab = (Velocitab) plugin.getServer().getPluginManager().getPlugin("velocitab").get().getInstance().get();
         this.velocitabAPI.setVanishIntegration(new VanishIntegration() {
             @Override
             public boolean canSee(String s, String s1) {
-                Optional<Player> player = getPlayer(s);
-                Optional<Player> target = getPlayer(s1);
+                final Optional<Player> player = getPlayer(s);
+                final Optional<Player> target = getPlayer(s1);
 
                 if (player.isPresent() && target.isPresent()) {
 //                    System.out.println("Checking if " + player.get().getUsername() + " can see " + target.get().getUsername() + ". Can see: " + plugin.getVanishManager().canSee(player.get(), target.get()));
@@ -46,7 +51,7 @@ public class VelocitabHook extends Hook {
 
             @Override
             public boolean isVanished(String s) {
-                Optional<Player> player = plugin.getServer().getPlayer(s);
+                final Optional<Player> player = plugin.getServer().getPlayer(s);
                 return player.filter(value -> plugin.getVanishManager().isVanished(value)).isPresent();
             }
         });
@@ -65,6 +70,10 @@ public class VelocitabHook extends Hook {
         }
     }
 
+    public String getGroupName(@NotNull String server) {
+        return velocitab.getTabGroups().getGroupFromServer(server, velocitab).name();
+    }
+
     @Override
     public void unregister() {
 
@@ -80,7 +89,7 @@ public class VelocitabHook extends Hook {
 
     @NotNull
     public String getCurrentGroup(@NotNull Player player) {
-        return velocitabAPI.getServerGroup(player).name();
+        return Optional.ofNullable(velocitabAPI.getServerGroup(player)).map(Group::name).orElse("");
     }
 
     @Subscribe

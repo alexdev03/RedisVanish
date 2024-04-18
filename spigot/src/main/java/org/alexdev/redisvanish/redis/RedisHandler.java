@@ -1,5 +1,6 @@
 package org.alexdev.redisvanish.redis;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.lettuce.core.RedisClient;
@@ -14,6 +15,7 @@ import org.alexdev.redisvanish.redis.data.RedisPubSub;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,13 +32,70 @@ public class RedisHandler extends RedisImplementation {
     public RedisHandler(RedisClient lettuceRedisClient, int size, RedisVanish plugin) {
         super(lettuceRedisClient, size);
         this.plugin = plugin;
-        this.vanishLevels = new ConcurrentSkipListMap<>();
+        this.vanishLevels = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
         this.subscribe();
         this.loadVanishLevels();
+        this.requestVanishLevels();
         this.publishTask();
     }
 
     private void subscribe() {
+        getPubSubConnection(c -> {
+            c.addListener(new RedisPubSub<>() {
+                @Override
+                public void message(String channel, String message) {
+                    final JsonObject object = gson.fromJson(message, JsonObject.class);
+                    final String targetServer = object.get("server").getAsString();
+                    if (isNotSameServerType(targetServer)) {
+                        return;
+                    }
+                    final JsonArray users = object.getAsJsonArray("users");
+                    users.forEach(user -> {
+                        final JsonObject userObject = user.getAsJsonObject();
+                        final String server = userObject.get("server").getAsString();
+                        if (isNotSameServerType(server)) {
+                            return;
+                        }
+                        final User u = gson.fromJson(userObject.getAsJsonObject("user"), User.class);
+                        plugin.getUserManager().addUser(u);
+                    });
+                }
+            });
+            c.async().subscribe(RedisKeys.USER_SET_CACHE.getKey());
+        });
+        getPubSubConnection(c -> {
+            c.addListener(new RedisPubSub<>() {
+                @Override
+                public void message(String channel, String message) {
+                    final JsonObject object = gson.fromJson(message, JsonObject.class);
+                    final String server = object.get("server").getAsString();
+                    if (isNotSameServerType(server)) {
+                        return;
+                    }
+                    final User user = gson.fromJson(object.getAsJsonObject("user"), User.class);
+                    plugin.getUserManager().addUser(user);
+                }
+            });
+            c.async().subscribe(RedisKeys.USER_JOIN.getKey());
+        });
+
+        getPubSubConnection(c -> {
+            c.addListener(new RedisPubSub<>() {
+                @Override
+                public void message(String channel, String message) {
+                    final JsonObject object = gson.fromJson(message, JsonObject.class);
+                    final String server = object.get("server").getAsString();
+                    if (isNotSameServerType(server)) {
+                        return;
+                    }
+                    final UUID uuid = UUID.fromString(object.get("uuid").getAsString());
+                    plugin.getUserManager().removeUser(uuid);
+                }
+            });
+            c.async().subscribe(RedisKeys.USER_LEAVE.getKey());
+        });
+
+
         getPubSubConnection(c -> {
             c.addListener(new RedisPubSub<>() {
                 @Override
@@ -106,6 +165,18 @@ public class RedisHandler extends RedisImplementation {
             connection.hset(RedisKeys.REMOTE_USER.getKey(), user.uuid().toString(), object.toString());
             return connection.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
         });
+    }
+
+    private boolean isNotSameServerType(String server) {
+        return !server.isEmpty() && !plugin.getConfigManager().getConfig().getServerType().equals(server);
+    }
+
+    public void requestUserCache() {
+        this.getConnectionAsync(connection -> connection.publish(RedisKeys.USER_CACHE_REQUEST.getKey(), plugin.getConfigManager().getConfig().getServerType()));
+    }
+
+    public void requestVanishLevels() {
+        this.getConnectionAsync(connection -> connection.publish(RedisKeys.VANISH_LEVELS_REQUEST.getKey(), ""));
     }
 
     private void loadVanishLevels() {

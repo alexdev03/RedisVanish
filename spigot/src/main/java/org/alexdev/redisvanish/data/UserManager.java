@@ -28,7 +28,8 @@ public class UserManager {
         this.users = new ConcurrentHashMap<>();
         this.remoteUsers = new ConcurrentHashMap<>();
         this.loadedRemoteUsers = new CopyOnWriteArrayList<>();
-        this.loadLocalUsers();
+        plugin.getRedis().requestUserCache();
+//        this.loadLocalUsers();
         this.loadRemoteUsers();
     }
 

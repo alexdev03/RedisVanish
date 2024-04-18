@@ -3,9 +3,12 @@ package org.alexdev.redisvanish.data;
 import com.velocitypowered.api.proxy.Player;
 import org.alexdev.redisvanish.RedisVanish;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserManager {
@@ -21,17 +24,30 @@ public class UserManager {
 
     private void loadLocalUsers() {
         users.clear();
-        plugin.getServer().getAllPlayers().forEach(player -> {
-            plugin.getRedis().loadUser(player.getUniqueId()).thenApply(user -> {
-                if (user == null) {
-                    user = new User(player.getUniqueId(), player.getUsername());
-                    plugin.getRedis().saveUser(user);
-                }
+        final Set<CompletableFuture<User>> futures = ConcurrentHashMap.newKeySet();
+        plugin.getServer().getAllPlayers().forEach(player -> futures.add(plugin.getRedis().loadUser(player.getUniqueId()).thenApply(user -> {
+            if (user == null) {
+                user = new User(player.getUniqueId(), player.getUsername());
+                plugin.getRedis().saveUser(user);
+            }
 
-                addUser(user);
-                return user;
-            });
+            addUser(user);
+            return user;
+        }).toCompletableFuture()));
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRun(() -> {
+            plugin.getLogger().info("Loaded " + users.size() + " users");
+            sendUsersToServer(null);
         });
+    }
+
+    /**
+     * Sends the users to the server.
+     *
+     * @param server the target server to send the users (nullable to send to all servers)
+     */
+    public void sendUsersToServer(@Nullable String server) {
+        plugin.getRedis().sendLoadedUsers(plugin.getVanishManager().getUserServerMap(users.values()), server);
     }
 
     @NotNull

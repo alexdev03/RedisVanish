@@ -5,11 +5,9 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
-import com.github.retrooper.packetevents.util.FakeChannelUtil;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.github.retrooper.packetevents.injector.SpigotChannelInjector;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import lombok.RequiredArgsConstructor;
 import org.alexdev.redisvanish.RedisVanish;
 import org.bukkit.Bukkit;
@@ -28,7 +26,7 @@ public class PacketEventsListener extends PacketListenerAbstract {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin));
         //Are all listeners read only?
         PacketEvents.getAPI().getSettings().reEncodeByDefault(false)
-                .checkForUpdates(true)
+                .checkForUpdates(false)
                 .bStats(true);
         PacketEvents.getAPI().load();
     }
@@ -41,21 +39,9 @@ public class PacketEventsListener extends PacketListenerAbstract {
 
     private void inject() {
         Bukkit.getOnlinePlayers().forEach(player -> {
-            SpigotChannelInjector injector = (SpigotChannelInjector) PacketEvents.getAPI().getInjector();
+            final SpigotChannelInjector injector = (SpigotChannelInjector) PacketEvents.getAPI().getInjector();
+            final User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
 
-            User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-            if (user == null) {
-                //We did not inject this user
-                Object channel = PacketEvents.getAPI().getPlayerManager().getChannel(player);
-                //Check if it is a fake connection...
-                if (!FakeChannelUtil.isFakeChannel(channel)) {
-                    //Kick them, if they are not a fake player.
-                    FoliaCompatUtil.runTaskForEntity(player, plugin, () -> player.kickPlayer("PacketEvents 2.0 failed to inject"), null, 0);
-                }
-                return;
-            }
-
-            // Set bukkit player object in the injectors
             injector.updatePlayer(user, player);
         });
     }
