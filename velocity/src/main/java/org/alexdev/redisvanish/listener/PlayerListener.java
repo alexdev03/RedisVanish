@@ -58,13 +58,21 @@ public class PlayerListener {
 
             plugin.getUserManager().addUser(user);
 //            plugin.getRedis().sendUserJoin(user);
+        }).exceptionally(throwable -> {
+            plugin.getLogger().error("Error loading user", throwable);
+            return null;
         });
     }
 
     @Subscribe(order = PostOrder.LATE)
     public void onPlayerQuit(DisconnectEvent e) {
         plugin.getServer().getScheduler().buildTask(plugin, () -> {
-            final User user = plugin.getUserManager().getUser(e.getPlayer());
+            final Optional<User> userOptional = plugin.getUserManager().getUser(e.getPlayer().getUniqueId());
+            if (userOptional.isEmpty()) {
+                plugin.getUserManager().removeUser(e.getPlayer().getUniqueId());
+                return;
+            }
+            final User user = userOptional.get();
             plugin.getUserManager().removeUser(user);
             plugin.getRedis().sendUserLeave(user, null);
             server.remove(e.getPlayer().getUniqueId());

@@ -9,7 +9,6 @@ import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.scheduler.ScheduledTask;
 import io.lettuce.core.RedisClient;
 import lombok.Getter;
 import org.alexdev.redisvanish.commands.RedisVanishCommand;
@@ -88,7 +87,6 @@ public class RedisVanish {
     public void onProxyShutdown(@NotNull ProxyShutdownEvent event) {
 //        hooks.values().forEach(Hook::unregister);
         redis.close();
-        server.getScheduler().tasksByPlugin(this).forEach(ScheduledTask::cancel);
         logger.info("Successfully disabled RedisVanish");
     }
 

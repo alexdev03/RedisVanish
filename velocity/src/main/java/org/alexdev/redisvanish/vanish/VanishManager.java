@@ -32,7 +32,9 @@ public class VanishManager {
     }
 
     public boolean canSee(@NotNull Player player, @NotNull Player target) {
-
+        if (player.equals(target)) {
+            return true;
+        }
         if (player.hasPermission("redisvanish.bypass")) {
 //            System.out.println("Bypassing vanish check for " + player.getUsername() + " on " + target.getUsername());
             return true;
@@ -42,16 +44,13 @@ public class VanishManager {
             return true;
         }
 
-
-        Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
-
+        final Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
         if (targetVanishLevel.isEmpty()) {
             plugin.getLogger().warn("Target " + target.getUsername() + " has no vanish level, this should not happen");
             return true;
         }
 
-        Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
-
+        final Optional<VanishLevel> playerVanishLevel = getVanishLevel(player);
         if (playerVanishLevel.isEmpty()) {
 //            System.out.println("Player " + player.getUsername() + " has no vanish level, can't see");
             return false;
@@ -67,6 +66,11 @@ public class VanishManager {
 
     public boolean isVanished(@NotNull Player player) {
         final User targetUser = plugin.getUserManager().getUser(player);
+
+        if (targetUser == null) {
+            System.out.println(plugin.getUserManager().getUsers().keySet());
+            return false;
+        }
 
         final String currentServer = getServer(player);
 

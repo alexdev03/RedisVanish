@@ -35,7 +35,12 @@ public abstract class RedisAbstract {
 
     public <T> CompletionStage<T> getConnectionAsync
             (Function<RedisAsyncCommands<String, String>, CompletionStage<T>> redisCallBack) {
-        return redisCallBack.apply(roundRobinConnectionPoolString.get().async());
+        StatefulRedisConnection<String, String> connection = lettuceRedisClient.connect();
+        CompletionStage<T> returnable = redisCallBack.apply(connection.async());
+        return returnable.thenApply(t -> {
+            connection.close();
+            return t;
+        });
     }
 
 

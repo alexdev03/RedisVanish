@@ -3,10 +3,10 @@ dependencies {
 
     compileOnly 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
     compileOnly 'org.projectlombok:lombok:1.18.30'
-    compileOnly 'net.william278:velocitab:1.6.4'
+    compileOnly 'net.william278:velocitab:1.6.5'
 
     implementation 'org.bstats:bstats-velocity:3.0.2'
-    implementation 'io.lettuce:lettuce-core:6.2.5.RELEASE'
+    implementation 'io.lettuce:lettuce-core:6.3.2.RELEASE'
     implementation 'com.github.Exlll.ConfigLib:configlib-core:dev-SNAPSHOT'
     implementation 'com.github.Exlll.ConfigLib:configlib-velocity:dev-SNAPSHOT'
     implementation 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
@@ -19,5 +19,12 @@ shadowJar {
     relocate 'io.lettuce', 'org.alexdev.redisvanish.libraries.lettuce'
     relocate 'de.exlll.configlib', 'org.alexdev.redisvanish.libraries.configlib'
     relocate 'de.themoep.minedown', 'org.alexdev.redisvanish.libraries.minedown'
+    relocate 'org.reactivestreams', 'org.alexdev.redisvanish.libraries.reactivestreams'
+    relocate 'org.snakeyaml', 'org.alexdev.redisvanish.libraries.snakeyaml'
+    relocate('reactor.core', 'org.alexdev.redisvanish.libraries.reactor.core')
+    relocate('reactor.util', 'org.alexdev.redisvanish.libraries.reactor.util')
+    relocate('reactor.adapter', 'org.alexdev.redisvanish.libraries.reactor.adapter')
     minimize()
+
+    exclude('io/netty/**')
 }

@@ -1,11 +1,13 @@
 package org.alexdev.redisvanish.data;
 
 import com.velocitypowered.api.proxy.Player;
+import lombok.Getter;
 import org.alexdev.redisvanish.RedisVanish;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -14,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserManager {
 
     private final RedisVanish plugin;
+    @Getter
     private final Map<UUID, User> users;
 
     public UserManager(RedisVanish plugin) {
@@ -55,12 +58,20 @@ public class UserManager {
         return users.get(player.getUniqueId());
     }
 
+    public Optional<User> getUser(@NotNull UUID uuid) {
+        return Optional.ofNullable(users.get(uuid));
+    }
+
     public void addUser(@NotNull User user) {
         users.put(user.uuid(), user);
     }
 
     public void removeUser(@NotNull User user) {
         users.remove(user.uuid());
+    }
+
+    public void removeUser(@NotNull UUID uuid) {
+        users.remove(uuid);
     }
 
 
