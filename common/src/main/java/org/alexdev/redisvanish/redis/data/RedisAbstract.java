@@ -63,7 +63,8 @@ public abstract class RedisAbstract {
 
 
     public void close() {
-        lettuceRedisClient.shutdownAsync().thenAccept(v -> executorService.shutdown());
+        lettuceRedisClient.shutdown();
+        executorService.shutdown();
     }
 
 }

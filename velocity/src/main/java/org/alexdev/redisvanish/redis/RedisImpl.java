@@ -12,8 +12,7 @@ import org.alexdev.redisvanish.redis.data.RedisPubSub;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 
 public class RedisImpl extends RedisImplementation {
@@ -70,17 +69,6 @@ public class RedisImpl extends RedisImplementation {
         });
     }
 
-    public void removeRemoteUser(@NotNull UUID uuid, @NotNull String server) {
-        JsonObject object = new JsonObject();
-        object.addProperty("type", 2);
-        object.addProperty("uuid", uuid.toString());
-        object.addProperty("group", server);
-        this.getConnectionAsync(connection -> {
-            connection.hdel(RedisKeys.REMOTE_USER.getKey(), uuid.toString());
-            return connection.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
-        });
-    }
-
     public void sendLoadedUsers(@NotNull Map<User, String> users, @Nullable String target) {
         final JsonObject object = new JsonObject();
         object.addProperty("server", target == null ? "" : target);
@@ -124,34 +112,5 @@ public class RedisImpl extends RedisImplementation {
         object.addProperty("server", server == null ? "" : server);
         object.addProperty("uuid", user.uuid().toString());
         this.getConnectionAsync(connection -> connection.publish(RedisKeys.USER_LEAVE.getKey(), object.toString()));
-    }
-
-    public void cleanTask() {
-        plugin.getServer().getScheduler().buildTask(plugin, () -> {
-            this.getConnectionAsync(connection -> connection.hgetall(RedisKeys.REMOTE_USER.getKey()).thenAccept(map -> {
-                final List<UUID> toRemove = new ArrayList<>();
-                map.forEach((key, value) -> {
-                    JsonObject object = gson.fromJson(value, JsonObject.class);
-                    long time = object.get("time").getAsLong();
-                    if (System.currentTimeMillis() - time > TimeUnit.SECONDS.toMillis(30)) {
-                        toRemove.add(UUID.fromString(key));
-                    }
-                });
-
-                if (toRemove.isEmpty()) return;
-
-                getConnectionAsync(connection2 -> {
-                    toRemove.forEach(uuid -> {
-                        connection2.hdel(RedisKeys.REMOTE_USER.getKey(), uuid.toString());
-                    });
-                    JsonObject object = new JsonObject();
-                    object.addProperty("type", 3);
-                    object.add("users", gson.toJsonTree(toRemove, new com.google.gson.reflect.TypeToken<List<UUID>>() {
-                    }.getType()));
-                    return connection2.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
-                });
-
-            }));
-        }).repeat(30, TimeUnit.SECONDS).schedule();
     }
 }

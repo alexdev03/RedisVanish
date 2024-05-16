@@ -6,14 +6,16 @@ import io.lettuce.core.RedisClient;
 import lombok.Getter;
 import org.alexdev.redisvanish.commands.RedisVanishSpigotCommand;
 import org.alexdev.redisvanish.commands.VanishSettingsCommand;
+import org.alexdev.redisvanish.commands.providers.RemoteUserProvider;
 import org.alexdev.redisvanish.config.ConfigManager;
+import org.alexdev.redisvanish.data.RemoteUser;
 import org.alexdev.redisvanish.data.UserManager;
 import org.alexdev.redisvanish.gui.InventoryManager;
 import org.alexdev.redisvanish.hook.Hook;
+import org.alexdev.redisvanish.hook.PacketEventsListener;
 import org.alexdev.redisvanish.hook.RedisChatHook;
 import org.alexdev.redisvanish.hook.UnlimitedNameTagsHook;
 import org.alexdev.redisvanish.hook.papi.PlaceholderAPIHook;
-import org.alexdev.redisvanish.listener.PacketEventsListener;
 import org.alexdev.redisvanish.listener.PlayerListener;
 import org.alexdev.redisvanish.listener.VanishListener;
 import org.alexdev.redisvanish.redis.RedisHandler;
@@ -36,23 +38,16 @@ public final class RedisVanish extends JavaPlugin {
     private InventoryManager inventoryManager;
     private List<Hook> hooks;
     private PacketEventsListener packetEventsListener;
-
-    @Override
-    public void onLoad() {
-        if (Bukkit.getPluginManager().isPluginEnabled("PacketEvents")) {
-            getLogger().info("PacketEvents found, hooking into it");
-            packetEventsListener = new PacketEventsListener(this);
-            packetEventsListener.onLoad();
-        }
-    }
+    private PlayerListener playerListener;
 
     @Override
     public void onEnable() {
         configManager = new ConfigManager(this);
+        userManager = new UserManager(this);
         redis = new RedisHandler(RedisClient.create(configManager.getConfig().getRedisUri()), 10, this);
         vanishManager = new VanishManager(this);
-        userManager = new UserManager(this);
         inventoryManager = new InventoryManager(this);
+        userManager.loadRedisStuff();
         loadHooks();
         loadCommands();
         loadListeners();
@@ -80,6 +75,12 @@ public final class RedisVanish extends JavaPlugin {
             hook.register();
             hooks.add(hook);
         }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PacketEvents")) {
+            getLogger().info("PacketEvents found, hooking into it");
+            packetEventsListener = new PacketEventsListener(this);
+            hooks.add(packetEventsListener);
+        }
     }
 
     public <H extends Hook> Optional<H> getHook(@NotNull Class<H> hookType) {
@@ -91,18 +92,16 @@ public final class RedisVanish extends JavaPlugin {
 
     private void loadCommands() {
         CommandService drink = Drink.get(this);
+        drink.bind(RemoteUser.class).toProvider(new RemoteUserProvider(this));
         drink.register(new VanishSettingsCommand(this), "vanishsettings", "vs");
         drink.register(new RedisVanishSpigotCommand(this), "redisvanishspigot", "rvs");
         drink.registerCommands();
     }
 
     private void loadListeners() {
-        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        playerListener = new PlayerListener(this);
+        getServer().getPluginManager().registerEvents(playerListener, this);
         getServer().getPluginManager().registerEvents(new VanishListener(this), this);
-
-        if (packetEventsListener != null) {
-            packetEventsListener.onEnable();
-        }
     }
 
     @Override

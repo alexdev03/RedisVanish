@@ -57,7 +57,6 @@ public class PlayerListener {
             }
 
             plugin.getUserManager().addUser(user);
-//            plugin.getRedis().sendUserJoin(user);
         }).exceptionally(throwable -> {
             plugin.getLogger().error("Error loading user", throwable);
             return null;
@@ -91,7 +90,7 @@ public class PlayerListener {
         server.put(e.getPlayer().getUniqueId(), serverName);
 
         String previousGroup = lastGroup.get(e.getPlayer().getUniqueId());
-        String currentGroup = plugin.getVanishManager().getServerGroup(e.getPlayer(), serverName);
+        String currentGroup = plugin.getVanishManager().getServerGroup(serverName);
         lastGroup.put(e.getPlayer().getUniqueId(), currentGroup);
 
         final User user = plugin.getUserManager().getUser(e.getPlayer());
@@ -111,7 +110,9 @@ public class PlayerListener {
         }
 
 //        plugin.getRedis().removeRemoteUser(e.getPlayer().getUniqueId(), previousGroup);
-        plugin.getRedis().sendUserLeave(user, previousGroup);
+        plugin.getServer().getScheduler().buildTask(plugin, () -> plugin.getRedis().sendUserLeave(user, previousGroup))
+                .delay(3500, TimeUnit.MILLISECONDS)
+                .schedule();
         plugin.getRedis().sendUserJoin(user, currentGroup);
     }
 

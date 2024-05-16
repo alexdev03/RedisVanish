@@ -4,7 +4,6 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import lombok.Getter;
-import net.william278.velocitab.Velocitab;
 import net.william278.velocitab.api.VelocitabAPI;
 import net.william278.velocitab.config.Group;
 import net.william278.velocitab.vanish.VanishIntegration;
@@ -20,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class VelocitabHook extends Hook {
 
     private VelocitabAPI velocitabAPI;
-    private Velocitab velocitab;
     private final List<Player> justQuit;
 
     public VelocitabHook(RedisVanish plugin) {
@@ -32,7 +30,6 @@ public class VelocitabHook extends Hook {
     @SuppressWarnings("all")
     public void register() {
         this.velocitabAPI = VelocitabAPI.getInstance();
-        this.velocitab = (Velocitab) plugin.getServer().getPluginManager().getPlugin("velocitab").get().getInstance().get();
         this.velocitabAPI.setVanishIntegration(new VanishIntegration() {
             @Override
             public boolean canSee(String s, String s1) {
@@ -70,8 +67,9 @@ public class VelocitabHook extends Hook {
         }
     }
 
-    public String getGroupName(@NotNull String server) {
-        return velocitab.getTabGroups().getGroupFromServer(server, velocitab).name();
+    public Optional<String> getGroupName(@NotNull String server) {
+        //return velocitab.getTabGroups().getGroupFromServer(server, velocitab).name();
+        return velocitabAPI.getGroupFromServer(server).map(Group::name);
     }
 
     @Override

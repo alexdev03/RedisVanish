@@ -7,13 +7,14 @@ import org.alexdev.redisvanish.RedisVanish;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class RedisChatHook extends Hook {
+public class RedisChatHook implements Hook {
 
+    private final RedisVanish plugin;
     private RedisChatAPI api;
     private VanishIntegration vanishIntegration;
 
     public RedisChatHook(RedisVanish plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     @Override

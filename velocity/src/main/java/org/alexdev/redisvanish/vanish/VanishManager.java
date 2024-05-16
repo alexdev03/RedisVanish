@@ -46,7 +46,7 @@ public class VanishManager {
 
         final Optional<VanishLevel> targetVanishLevel = getVanishLevel(target);
         if (targetVanishLevel.isEmpty()) {
-            plugin.getLogger().warn("Target " + target.getUsername() + " has no vanish level, this should not happen");
+            plugin.getLogger().warn("Target " + target.getUsername() + " has no vanish level, this should not happen for an online player");
             return true;
         }
 
@@ -80,10 +80,10 @@ public class VanishManager {
     }
 
     @NotNull
-    public String getServerGroup(@NotNull Player player, @NotNull String origin) {
+    public String getServerGroup(@NotNull String origin) {
         var hook = plugin.getHook(VelocitabHook.class);
         return hook
-                .map(velocitabHook -> velocitabHook.getGroupName(origin))
+                .flatMap(velocitabHook -> velocitabHook.getGroupName(origin))
                 .orElse(origin);
     }
 

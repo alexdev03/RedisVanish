@@ -1,4 +1,4 @@
-package org.alexdev.redisvanish.listener;
+package org.alexdev.redisvanish.hook;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -6,7 +6,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.github.retrooper.packetevents.injector.SpigotChannelInjector;
 import lombok.RequiredArgsConstructor;
 import org.alexdev.redisvanish.RedisVanish;
@@ -18,24 +17,9 @@ import java.util.Optional;
 
 
 @RequiredArgsConstructor
-public class PacketEventsListener extends PacketListenerAbstract {
+public class PacketEventsListener extends PacketListenerAbstract implements Hook {
 
     private final RedisVanish plugin;
-
-    public void onLoad() {
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin));
-        //Are all listeners read only?
-        PacketEvents.getAPI().getSettings().reEncodeByDefault(false)
-                .checkForUpdates(false)
-                .bStats(true);
-        PacketEvents.getAPI().load();
-    }
-
-    public void onEnable() {
-        PacketEvents.getAPI().getEventManager().registerListener(this);
-        PacketEvents.getAPI().init();
-        inject();
-    }
 
     private void inject() {
         Bukkit.getOnlinePlayers().forEach(player -> {
@@ -73,5 +57,23 @@ public class PacketEventsListener extends PacketListenerAbstract {
 
 
 
+    }
+
+    @Override
+    public void register() {
+//        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin));
+//        //Are all listeners read only?
+//        PacketEvents.getAPI().getSettings().reEncodeByDefault(false)
+//                .checkForUpdates(false)
+//                .bStats(true);
+//        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().getEventManager().registerListener(this);
+        PacketEvents.getAPI().init();
+        inject();
+    }
+
+    @Override
+    public void unregister() {
+        PacketEvents.getAPI().getEventManager().unregisterListener(this);
     }
 }

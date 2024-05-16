@@ -1,17 +1,19 @@
 package org.alexdev.redisvanish.data;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.Getter;
 import org.alexdev.redisvanish.RedisVanish;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 public class UserManager {
 
@@ -19,40 +21,46 @@ public class UserManager {
     @Getter
     private final Map<UUID, User> users;
     @Getter
-    private final Map<UUID, RemoteUser> remoteUsers;
+    private final Map<UUID, RemoteUser> remoteUsersByUUID;
     @Getter
-    private final List<RemoteUser> loadedRemoteUsers;
+    private final Map<String, RemoteUser> remoteUserByName;
+    @Getter
+    private final Set<RemoteUser> loadedRemoteUsers;
 
     public UserManager(RedisVanish plugin) {
         this.plugin = plugin;
         this.users = new ConcurrentHashMap<>();
-        this.remoteUsers = new ConcurrentHashMap<>();
-        this.loadedRemoteUsers = new CopyOnWriteArrayList<>();
-        plugin.getRedis().requestUserCache();
-//        this.loadLocalUsers();
-        this.loadRemoteUsers();
+        this.remoteUsersByUUID = Maps.newConcurrentMap();
+        this.remoteUserByName = Maps.newConcurrentMap();
+        this.loadedRemoteUsers = Sets.newConcurrentHashSet();
     }
 
-
+    public void loadRedisStuff() {
+        this.loadLocalUsers();
+        this.loadRemoteUsers();
+    }
 
     private void loadLocalUsers() {
         users.clear();
         Bukkit.getOnlinePlayers().forEach(player -> {
             plugin.getRedis().loadUser(player.getUniqueId()).thenAccept(user -> {
                 if (user == null) {
-                    plugin.getLogger().warning("User " + player.getName() + " has no data in Redis, this should not happen");
+                    plugin.getLogger().warning("User " + player.getName() + " has no data in Redis, this should not happen in loading");
                     return;
                 }
 
                 addUser(user);
                 prepareRemoteUser(user);
                 plugin.getVanishManager().hidePlayer(player);
+            }).exceptionally(throwable -> {
+                plugin.getLogger().log(Level.SEVERE, "Error loading user " + player.getName(), throwable);
+                return null;
             });
         });
     }
 
     private void loadRemoteUsers() {
-        remoteUsers.clear();
+        remoteUsersByUUID.clear();
         plugin.getRedis().getRemoteUsers().thenAccept(remoteUsers -> {
             if (remoteUsers == null) {
                 return;
@@ -117,41 +125,31 @@ public class UserManager {
     }
 
     public void addRemoteUser(@NotNull RemoteUser user) {
-        remoteUsers.put(user.uuid(), user);
+        remoteUsersByUUID.put(user.uuid(), user);
+        remoteUserByName.put(user.name(), user);
     }
 
-    public void removeRemoteUser(@NotNull RemoteUser user) {
-        remoteUsers.remove(user.uuid());
-    }
 
     public void removeRemoteUser(@NotNull UUID uuid) {
-        remoteUsers.remove(uuid);
+        remoteUsersByUUID.remove(uuid);
+        loadedRemoteUsers.removeIf(remoteUser -> remoteUser.uuid().equals(uuid));
     }
 
-    public void replaceRemoteUser(@NotNull RemoteUser user) {
-        remoteUsers.put(user.uuid(), user);
-    }
 
     public Optional<RemoteUser> getRemoteUser(@NotNull UUID uuid) {
-        return Optional.ofNullable(remoteUsers.get(uuid));
+        return Optional.ofNullable(remoteUsersByUUID.get(uuid));
     }
 
     public Optional<RemoteUser> getRemoteUser(@NotNull String name) {
-        return remoteUsers.values().stream().filter(user -> user.name().equalsIgnoreCase(name)).findFirst();
+        return Optional.ofNullable(remoteUserByName.get(name));
     }
 
     public void clearCache() {
         loadLocalUsers();
     }
 
-    public void prepareRemoteUser(@NotNull User user) {
+    public void prepareRemoteUser(@NotNull User user, @NotNull Player player) {
         try {
-            Player player = Bukkit.getPlayer(user.uuid());
-            if (player == null) {
-//                plugin.getLogger().warning("Player " + user.name() + " is not online, cannot prepare remote user");
-                return;
-            }
-
             final boolean hasPermission = player.hasPermission("redisvanish.bypass");
             final boolean isVanished = plugin.getVanishManager().isVanished(user);
             final Optional<VanishLevel> vanishLevel = plugin.getVanishManager().getVanishLevel(player);
@@ -162,11 +160,20 @@ public class UserManager {
                     .findFirst().orElse(-1)).orElse(-1);
 
 
-            RemoteUser remoteUser = new RemoteUser(user.uuid(), user.name(), hasPermission, isVanished, vanishLevelInt, System.currentTimeMillis());
+            final RemoteUser remoteUser = new RemoteUser(user.uuid(), user.name(), plugin.getRedis().getServerName(), hasPermission, isVanished, vanishLevelInt, System.currentTimeMillis());
             plugin.getRedis().sendRemoteUser(remoteUser);
             loadedRemoteUsers.add(remoteUser);
         } catch (Throwable e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Error preparing remote user", e);
         }
+    }
+
+    public void prepareRemoteUser(@NotNull User user) {
+        final Player player = Bukkit.getPlayer(user.uuid());
+        if (player == null) {
+            plugin.getLogger().warning("Player " + user.name() + " is not online, cannot prepare remote user");
+            return;
+        }
+        prepareRemoteUser(user, player);
     }
 }

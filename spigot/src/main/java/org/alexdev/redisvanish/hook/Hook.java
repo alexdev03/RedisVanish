@@ -1,15 +1,9 @@
 package org.alexdev.redisvanish.hook;
 
-import lombok.RequiredArgsConstructor;
-import org.alexdev.redisvanish.RedisVanish;
+public interface Hook {
 
-@RequiredArgsConstructor
-public abstract class Hook {
+    void register();
 
-    protected final RedisVanish plugin;
-
-    public abstract void register();
-
-    public abstract void unregister();
+    void unregister();
 
 }

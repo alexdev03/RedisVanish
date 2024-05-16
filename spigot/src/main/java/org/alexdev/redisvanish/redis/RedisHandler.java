@@ -14,6 +14,7 @@ import org.alexdev.redisvanish.redis.data.RedisKeys;
 import org.alexdev.redisvanish.redis.data.RedisPubSub;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.Comparator;
 import java.util.List;
@@ -37,6 +38,7 @@ public class RedisHandler extends RedisImplementation {
         this.loadVanishLevels();
         this.requestVanishLevels();
         this.publishTask();
+        this.requestUserCache();
     }
 
     private void subscribe() {
@@ -130,8 +132,12 @@ public class RedisHandler extends RedisImplementation {
                 public void message(String channel, String message) {
                     try {
                         final JsonObject object = gson.fromJson(message, JsonObject.class);
-
                         final int type = object.get("type").getAsInt();
+                        final String server = object.get("server").getAsString();
+
+                        if (isSameServer(server)) {
+                            return;
+                        }
 
                         if (type == 1) {
                             final RemoteUser user = gson.fromJson(object.get("user"), RemoteUser.class);
@@ -141,17 +147,20 @@ public class RedisHandler extends RedisImplementation {
                             if (!plugin.getConfigManager().getConfig().getServerType().equals(group)) return;
                             final UUID uuid = UUID.fromString(object.get("uuid").getAsString());
                             plugin.getUserManager().removeRemoteUser(uuid);
+                            System.out.println("Removed remote user " + uuid + " from cache");
                         } else if (type == 3) {
                             final List<UUID> users = gson.fromJson(object.get("users"), new TypeToken<List<UUID>>() {
                             }.getType());
 
                             users.forEach(plugin.getUserManager()::removeRemoteUser);
+                            System.out.println("Removed remote users from cache: " + users + " users");
                         }
                     } catch (Exception ex) {
                         plugin.getLogger().log(Level.SEVERE, "Error parsing remote user update", ex);
                     }
                 }
             });
+
             c.async().subscribe(RedisKeys.REMOTE_USER_UPDATE.getKey());
         });
     }
@@ -161,14 +170,24 @@ public class RedisHandler extends RedisImplementation {
         object.addProperty("type", 1);
         object.add("user", gson.toJsonTree(user));
         object.addProperty("time", System.currentTimeMillis());
+        object.addProperty("serverGroup", plugin.getConfigManager().getConfig().getServerType());
+        object.addProperty("server", getServerName());
         this.getConnectionAsync(connection -> {
             connection.hset(RedisKeys.REMOTE_USER.getKey(), user.uuid().toString(), object.toString());
             return connection.publish(RedisKeys.REMOTE_USER_UPDATE.getKey(), object.toString());
         });
     }
 
+    public String getServerName() {
+        return new File(System.getProperty("user.dir")).getName();
+    }
+
     private boolean isNotSameServerType(String server) {
         return !server.isEmpty() && !plugin.getConfigManager().getConfig().getServerType().equals(server);
+    }
+
+    public boolean isSameServer(String server) {
+        return getServerName().equals(server);
     }
 
     public void requestUserCache() {
@@ -218,7 +237,7 @@ public class RedisHandler extends RedisImplementation {
                 r.time(System.currentTimeMillis());
                 sendRemoteUser(r);
             });
-        }, 0, 20 * 15);
+        }, 10, 20);
     }
 
 

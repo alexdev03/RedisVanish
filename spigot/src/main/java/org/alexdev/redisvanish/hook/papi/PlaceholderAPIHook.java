@@ -3,12 +3,13 @@ package org.alexdev.redisvanish.hook.papi;
 import org.alexdev.redisvanish.RedisVanish;
 import org.alexdev.redisvanish.hook.Hook;
 
-public class PlaceholderAPIHook extends Hook {
+public class PlaceholderAPIHook implements Hook {
 
+    private final RedisVanish plugin;
     private Placeholders placeholders;
 
     public PlaceholderAPIHook(RedisVanish plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     @Override

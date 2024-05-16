@@ -20,5 +20,14 @@ public class Config {
             3, new VanishLevel("Helper", "redisvanish.level.helper")
     );
 
+//    @Comment("List of groups")
+//    private List<Group> groups = List.of(
+//            new Group("Survival", List.of("spawn*", "realm*"))
+//    );
+//
+//    public record Group(String name, List<String> servers) {
+//
+//    }
+
 
 }

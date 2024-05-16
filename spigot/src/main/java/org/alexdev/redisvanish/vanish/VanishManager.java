@@ -31,7 +31,7 @@ public class VanishManager {
     }
 
     public boolean isVanished(User user) {
-        if(user == null) return false;
+        if (user == null) return false;
         return user.isVanished(plugin.getConfigManager().getConfig().getServerType());
     }
 
@@ -119,36 +119,40 @@ public class VanishManager {
         }
     }
 
-    public boolean canSee(@NotNull Player player, @NotNull String target) {
-        Player targetPlayer = Bukkit.getPlayer(target);
-
-        if (targetPlayer != null) {
-            return canSee(player, targetPlayer);
-        }
-
-        Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(target);
-
-        if (remoteUser.isEmpty()) {
-            plugin.getLogger().warning("Remote user " + target + " has no data in Redis, this should not happen");
-            return true;
-        }
-
+    public boolean canSee(@NotNull Player player, @NotNull RemoteUser remoteUser) {
         if (player.hasPermission("redisvanish.bypass")) {
             return true;
         }
 
-        if(!remoteUser.get().vanished()) {
+        if (!remoteUser.vanished()) {
             return true;
         }
 
-        Optional<VanishLevel> targetVanishLevel = getVanishLevel(remoteUser.get().vanishLevel());
-
+        final Optional<VanishLevel> targetVanishLevel = getVanishLevel(remoteUser.vanishLevel());
         if (targetVanishLevel.isEmpty()) {
-            plugin.getLogger().warning("Remote user " + target + " has no vanish level, this should not happen (level: " + remoteUser.get().vanishLevel() + ")");
+            plugin.getLogger().warning("Remote user " + remoteUser.name() + " has no vanish level, this should not happen (level: " + remoteUser.vanishLevel() + ")");
             return true;
         }
 
         return getVanishLevel(player).filter(level -> checkVanishLevels(level, targetVanishLevel.get())).isPresent();
+    }
+
+    public boolean canSee(@NotNull Player player, @NotNull String target) {
+        final Player targetPlayer = Bukkit.getPlayer(target);
+        if (targetPlayer != null) {
+            return canSee(player, targetPlayer);
+        }
+
+        final Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(target);
+        if (remoteUser.isEmpty()) {
+            if (!plugin.getPlayerListener().isJustQuit(target)) {
+                plugin.getLogger().warning("Remote user " + target + " has no data in Redis, this should not happen for target");
+                return false;
+            }
+            return true;
+        }
+
+        return canSee(player, remoteUser.get());
     }
 
     public boolean canSee(@NotNull Player player, @NotNull Player target) {
@@ -192,6 +196,18 @@ public class VanishManager {
         }
 
         return Optional.empty();
+    }
+
+    public Optional<VanishLevel> getRemoveVanishLevel(@NotNull String name) {
+        Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(name);
+        if (remoteUser.isEmpty()) {
+            return Optional.empty();
+        }
+        return getVanishLevel(remoteUser.get().vanishLevel());
+    }
+
+    public Optional<VanishLevel> getRemoveVanishLevel(@NotNull RemoteUser remoteUser) {
+        return getVanishLevel(remoteUser.vanishLevel());
     }
 
     public Optional<VanishLevel> getVanishLevel(int index) {
@@ -252,7 +268,7 @@ public class VanishManager {
 
         newList.removeIf(s -> {
             Optional<RemoteUser> remoteUser = plugin.getUserManager().getRemoteUser(s);
-            if(remoteUser.isEmpty()) return false;
+            if (remoteUser.isEmpty()) return false;
 
             if (vanishLevel.isEmpty() && remoteUser.get().vanished()) return true;
 

@@ -6,13 +6,12 @@ import org.alexdev.unlimitednametags.api.UNTAPI;
 import org.alexdev.unlimitednametags.vanish.VanishIntegration;
 import org.bukkit.entity.Player;
 
-public class UnlimitedNameTagsHook extends Hook {
+public class UnlimitedNameTagsHook implements Hook {
 
     private final RedisVanish plugin;
     private UNTAPI api;
 
     public UnlimitedNameTagsHook(RedisVanish plugin) {
-        super(plugin);
         this.plugin = plugin;
     }
 
